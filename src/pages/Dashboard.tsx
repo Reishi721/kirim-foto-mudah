@@ -3,7 +3,7 @@ import { KPICard } from '@/components/dashboard/KPICard';
 import { UploadsChart } from '@/components/dashboard/UploadsChart';
 import { TypeChart } from '@/components/dashboard/TypeChart';
 import { RecentUploadsTable } from '@/components/dashboard/RecentUploadsTable';
-import { Camera, FolderOpen, HardDrive, TrendingUp, Loader2, Upload, Download } from 'lucide-react';
+import { Camera, FolderOpen, HardDrive, TrendingUp, Loader2, Upload, Download, Shield } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
 import { useState, useEffect } from 'react';
@@ -39,10 +39,23 @@ export default function Dashboard() {
   const [typeData, setTypeData] = useState<TypeData[]>([]);
   const [recentUploads, setRecentUploads] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     loadDashboardData();
+    checkAdminStatus();
   }, []);
+
+  const checkAdminStatus = async () => {
+    try {
+      const { data, error } = await supabase.rpc('is_admin');
+      if (!error && data) {
+        setIsAdmin(true);
+      }
+    } catch (error) {
+      console.error('Error checking admin status:', error);
+    }
+  };
 
   const loadDashboardData = async () => {
     setIsLoading(true);
@@ -177,6 +190,31 @@ export default function Dashboard() {
             </div>
           </Card>
         </motion.div>
+
+        {/* Admin Card (only for admins) */}
+        {isAdmin && (
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.18, duration: 0.22 }}
+          >
+            <Card 
+              className="relative overflow-hidden p-6 cursor-pointer hover-lift group border-accent/50"
+              onClick={() => navigate('/admin')}
+            >
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-from-l-accent to-accent-foreground" />
+              <div className="flex items-center gap-4">
+                <div className="rounded-xl bg-accent/10 p-3 group-hover:bg-accent/20 transition-colors duration-220">
+                  <Shield className="h-6 w-6 text-accent" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-lg">Admin Dashboard</h3>
+                  <p className="text-sm text-muted-foreground">Manage users and content</p>
+                </div>
+              </div>
+            </Card>
+          </motion.div>
+        )}
 
         {/* KPI Cards */}
         <motion.div

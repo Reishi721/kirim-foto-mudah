@@ -10,6 +10,7 @@ import Dashboard from "./pages/Dashboard";
 import Upload from "./pages/Upload";
 import Browse from "./pages/Browse";
 import Login from "./pages/Login";
+import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -72,6 +73,14 @@ const App = () => (
             element={
               <ProtectedRoute showNav={true}>
                 <Browse />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute showNav={false}>
+                <Admin />
               </ProtectedRoute>
             }
           />
