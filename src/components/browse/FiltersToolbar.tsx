@@ -125,12 +125,15 @@ export function FiltersToolbar({
         </Popover>
 
         {/* Driver Filter */}
-        <Select value={filters.supir || ''} onValueChange={(value) => onFiltersChange({ supir: value || undefined })}>
+        <Select 
+          value={filters.supir || 'all'} 
+          onValueChange={(value) => onFiltersChange({ supir: value === 'all' ? undefined : value })}
+        >
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="All Drivers" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Drivers</SelectItem>
+            <SelectItem value="all">All Drivers</SelectItem>
             {drivers.map((driver) => (
               <SelectItem key={driver} value={driver}>
                 {driver}
