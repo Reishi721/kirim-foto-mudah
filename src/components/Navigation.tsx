@@ -22,7 +22,7 @@ export function Navigation() {
               <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
                 <Truck className="w-6 h-6 text-primary" />
               </div>
-              <span className="font-semibold text-lg text-foreground">Surat Jalan</span>
+              <span className="font-semibold text-lg text-foreground">Documenting File System</span>
             </button>
 
             <div className="flex items-center gap-2">

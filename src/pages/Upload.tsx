@@ -228,13 +228,13 @@ export default function Upload() {
                   <h2 className="font-semibold mb-6">Delivery Information</h2>
                   
                   <div className="space-y-6">
-                    {/* No Surat Jalan */}
+                    {/* Document Number */}
                     <FormField
                       control={form.control}
                       name="noSuratJalan"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-base">No. Surat Jalan *</FormLabel>
+                          <FormLabel className="text-base">Document Number *</FormLabel>
                           <FormControl>
                             <Input 
                               placeholder="e.g. SJ-2025-001" 
@@ -290,13 +290,13 @@ export default function Upload() {
                       )}
                     />
 
-                    {/* Tipe Surat Jalan */}
+                    {/* Document Type */}
                     <FormField
                       control={form.control}
                       name="tipe"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-base">Tipe Surat Jalan *</FormLabel>
+                          <FormLabel className="text-base">Document Type *</FormLabel>
                           <Select onValueChange={field.onChange} value={field.value} disabled={isUploading}>
                             <FormControl>
                               <SelectTrigger className="h-11">

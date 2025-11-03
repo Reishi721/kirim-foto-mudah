@@ -114,7 +114,7 @@ export function PreviewDrawer({
               <h4 className="text-sm font-semibold text-foreground mb-3">Delivery Information</h4>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">No Surat Jalan:</span>
+                  <span className="text-muted-foreground">Document No:</span>
                   <span className="font-medium text-foreground">{metadata.noSuratJalan}</span>
                 </div>
                 <div className="flex justify-between">

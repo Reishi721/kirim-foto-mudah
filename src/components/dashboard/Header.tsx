@@ -50,9 +50,9 @@ export function DashboardHeader() {
         {/* Logo */}
         <div className="flex items-center gap-3">
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-primary shadow-soft">
-            <span className="text-lg font-bold text-primary-foreground">SJ</span>
+            <span className="text-lg font-bold text-primary-foreground">DFS</span>
           </div>
-          <span className="hidden font-semibold text-lg sm:inline-block">Surat Jalan</span>
+          <span className="hidden font-semibold text-lg sm:inline-block">Documenting File System</span>
         </div>
 
         <div className="flex-1" />

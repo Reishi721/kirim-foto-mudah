@@ -46,7 +46,7 @@ export function FiltersToolbar({
         <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
-            placeholder="Search by No Surat Jalan..."
+            placeholder="Search by Document No..."
             value={filters.search}
             onChange={(e) => onFiltersChange({ search: e.target.value })}
             className="pl-9"
