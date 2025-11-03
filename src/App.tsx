@@ -5,7 +5,9 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { Navigation } from "@/components/Navigation";
 import Upload from "./pages/Upload";
+import Browse from "./pages/Browse";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 
@@ -30,7 +32,14 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
   }
 
-  return isAuthenticated ? <>{children}</> : <Navigate to="/login" replace />;
+  return isAuthenticated ? (
+    <>
+      <Navigation />
+      {children}
+    </>
+  ) : (
+    <Navigate to="/login" replace />
+  );
 }
 
 const App = () => (
@@ -47,6 +56,14 @@ const App = () => (
             element={
               <ProtectedRoute>
                 <Upload />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/browse"
+            element={
+              <ProtectedRoute>
+                <Browse />
               </ProtectedRoute>
             }
           />

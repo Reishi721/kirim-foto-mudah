@@ -132,7 +132,7 @@ export default function Upload() {
   const isFormValid = form.formState.isValid && files.length > 0;
 
   return (
-    <div className="min-h-screen bg-background py-8 px-4">
+    <div className="min-h-[calc(100vh-64px)] bg-background py-8 px-4">
       <div className="max-w-3xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
