@@ -217,7 +217,20 @@ Deno.serve(async (req) => {
           }
         }
 
-        // Delete user from auth (this will cascade delete records and roles due to FK constraints)
+        // Delete upload records (no FK constraint, must delete manually)
+        const { error: deleteRecordsError } = await supabaseAdmin
+          .from('upload_records')
+          .delete()
+          .eq('user_id', userId);
+
+        if (deleteRecordsError) {
+          console.error('Error deleting upload records:', deleteRecordsError);
+          throw deleteRecordsError;
+        }
+
+        console.log('Upload records deleted');
+
+        // Delete user from auth (this will cascade delete user_roles due to FK constraint)
         const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(userId);
 
         if (deleteError) {
