@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shield, Users, Trash2, ImageOff, Loader2, ArrowLeft, AlertTriangle } from 'lucide-react';
+import { Shield, Users, Trash2, ImageOff, Loader2, ArrowLeft, AlertTriangle, Info } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import {
   Table,
   TableBody,
@@ -199,8 +201,29 @@ export default function Admin() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-brand" />
+      <div className="min-h-screen bg-background pb-12">
+        <div className="glass-card mb-8">
+          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-primary opacity-60" />
+          <div className="container mx-auto px-4 py-8">
+            <div className="flex items-center gap-4">
+              <Skeleton className="h-14 w-14 rounded-xl" />
+              <div className="space-y-2">
+                <Skeleton className="h-8 w-48" />
+                <Skeleton className="h-4 w-64" />
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="container mx-auto px-4 space-y-8">
+          <Card className="p-6">
+            <Skeleton className="h-6 w-32 mb-6" />
+            <div className="space-y-4">
+              {[1, 2, 3].map((i) => (
+                <Skeleton key={i} className="h-12 w-full" />
+              ))}
+            </div>
+          </Card>
+        </div>
       </div>
     );
   }
@@ -210,215 +233,306 @@ export default function Admin() {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-12">
-      {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: -16 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden glass-card mb-8"
-      >
-        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-brand opacity-60" />
-        <div className="container mx-auto px-4 py-8">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-primary shadow-soft">
-                <Shield className="h-7 w-7 text-primary-foreground" />
-              </div>
-              <div>
-                <h1 className="text-display font-bold">Admin Dashboard</h1>
-                <p className="text-base text-muted-foreground mt-1">Manage users and content</p>
-              </div>
-            </div>
-            <Button onClick={() => navigate('/')} variant="outline">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Home
-            </Button>
-          </div>
-        </div>
-      </motion.div>
-
-      <div className="container mx-auto px-4 space-y-8">
-        {/* Users Section */}
+    <TooltipProvider>
+      <div className="min-h-screen bg-background pb-12">
+        {/* Header */}
         <motion.div
-          initial={{ opacity: 0, y: 16 }}
+          initial={{ opacity: 0, y: -16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.12 }}
+          transition={{ duration: 0.3 }}
+          className="relative overflow-hidden glass-card mb-8"
         >
-          <Card className="p-6">
-            <div className="flex items-center gap-3 mb-6">
-              <Users className="h-5 w-5 text-brand" />
-              <h2 className="font-semibold">Users ({users.length})</h2>
+          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-primary opacity-60" />
+          <div className="container mx-auto px-4 py-8">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <motion.div 
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ delay: 0.1 }}
+                  className="flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-primary shadow-soft"
+                >
+                  <Shield className="h-7 w-7 text-primary-foreground" />
+                </motion.div>
+                <div>
+                  <h1 className="text-display font-bold">Admin Dashboard</h1>
+                  <p className="text-base text-muted-foreground mt-1">Manage users and content</p>
+                </div>
+              </div>
+              <Button onClick={() => navigate('/')} variant="outline" className="hover-lift">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to Home
+              </Button>
             </div>
+          </div>
+        </motion.div>
 
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Roles</TableHead>
-                    <TableHead>Uploads</TableHead>
-                    <TableHead>Created</TableHead>
-                    <TableHead>Last Sign In</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {users.map((user) => (
-                    <TableRow key={user.id}>
-                      <TableCell className="font-medium">{user.email}</TableCell>
-                      <TableCell>
-                        <div className="flex gap-1">
-                          {user.roles.map(role => (
-                            <Badge key={role} variant={role === 'admin' ? 'default' : 'secondary'}>
-                              {role}
-                            </Badge>
+        <div className="container mx-auto px-4 space-y-8">
+          {/* Users Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.12, duration: 0.3 }}
+          >
+            <Card className="p-6 hover-lift">
+              <div className="flex items-center gap-3 mb-6">
+                <Users className="h-5 w-5 text-primary" />
+                <h2 className="font-semibold">Users ({users.length})</h2>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Info className="h-4 w-4 text-muted-foreground cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Manage user accounts and permissions</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+
+              {users.length === 0 ? (
+                <div className="text-center py-12">
+                  <Users className="h-12 w-12 text-muted-foreground/50 mx-auto mb-3" />
+                  <p className="text-muted-foreground">No users found</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Roles</TableHead>
+                        <TableHead>Uploads</TableHead>
+                        <TableHead>Created</TableHead>
+                        <TableHead>Last Sign In</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {users.map((user) => (
+                        <motion.tr
+                          key={user.id}
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ duration: 0.2 }}
+                        >
+                          <TableCell className="font-medium">{user.email}</TableCell>
+                          <TableCell>
+                            <div className="flex gap-1">
+                              {user.roles.map(role => (
+                                <Badge key={role} variant={role === 'admin' ? 'default' : 'secondary'}>
+                                  {role}
+                                </Badge>
+                              ))}
+                            </div>
+                          </TableCell>
+                          <TableCell>{user.upload_count}</TableCell>
+                          <TableCell className="text-muted-foreground">
+                            {format(new Date(user.created_at), 'PPP')}
+                          </TableCell>
+                          <TableCell className="text-muted-foreground">
+                            {user.last_sign_in_at ? format(new Date(user.last_sign_in_at), 'PPP') : 'Never'}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => setDeleteTarget({ type: 'user', id: user.id, extra: user })}
+                                  disabled={user.roles.includes('admin')}
+                                  className="hover:bg-destructive/10 hover:text-destructive transition-colors"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>{user.roles.includes('admin') ? 'Cannot delete admin users' : 'Delete user and all their data'}</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TableCell>
+                        </motion.tr>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </Card>
+          </motion.div>
+
+          {/* Photos Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.24, duration: 0.3 }}
+          >
+            <Card className="p-6 hover-lift">
+              <div className="flex items-center gap-3 mb-6">
+                <ImageOff className="h-5 w-5 text-primary" />
+                <h2 className="font-semibold">Upload Records ({records.length})</h2>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Info className="h-4 w-4 text-muted-foreground cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>View and manage all uploaded photos</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+
+              {records.length === 0 ? (
+                <div className="text-center py-12">
+                  <ImageOff className="h-12 w-12 text-muted-foreground/50 mx-auto mb-3" />
+                  <p className="text-muted-foreground">No upload records found</p>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  {records.map((record, index) => (
+                    <motion.div
+                      key={record.id}
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.05, duration: 0.2 }}
+                      className="p-4 rounded-xl bg-muted/30 border border-border/50"
+                    >
+                      <div className="flex items-start justify-between mb-4">
+                        <div>
+                          <h3 className="font-medium text-lg">{record.no_surat_jalan}</h3>
+                          <div className="flex items-center gap-3 mt-1 text-sm text-muted-foreground">
+                            <span>{record.tipe}</span>
+                            <span>•</span>
+                            <span>{record.supir}</span>
+                            <span>•</span>
+                            <span>{format(new Date(record.tanggal), 'PPP')}</span>
+                          </div>
+                        </div>
+                        <Badge variant="secondary">{record.file_count} files</Badge>
+                      </div>
+
+                      {photos[record.id] && photos[record.id].length > 0 ? (
+                        <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-3">
+                          {photos[record.id].map((photo) => (
+                            <motion.div
+                              key={photo.id}
+                              initial={{ opacity: 0, scale: 0.9 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              transition={{ duration: 0.2 }}
+                              className="relative group"
+                            >
+                              <div className="aspect-square rounded-lg overflow-hidden glass-card">
+                                <img
+                                  src={`${supabase.storage.from('surat-jalan-uploads').getPublicUrl(`${record.folder_path}/${photo.name}`).data.publicUrl}`}
+                                  alt={photo.name}
+                                  className="w-full h-full object-cover transition-transform duration-220 group-hover:scale-105"
+                                />
+                              </div>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant="destructive"
+                                    size="icon"
+                                    className="absolute -top-2 -right-2 h-7 w-7 opacity-0 group-hover:opacity-100 transition-all shadow-soft hover:scale-110"
+                                    onClick={() => setDeleteTarget({ 
+                                      type: 'photo', 
+                                      id: photo.id, 
+                                      extra: { recordId: record.id, filePath: record.folder_path, fileName: photo.name }
+                                    })}
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Delete this photo permanently</p>
+                                </TooltipContent>
+                              </Tooltip>
+                              <p className="text-xs text-muted-foreground mt-1 truncate">{photo.name}</p>
+                            </motion.div>
                           ))}
                         </div>
-                      </TableCell>
-                      <TableCell>{user.upload_count}</TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {format(new Date(user.created_at), 'PPP')}
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {user.last_sign_in_at ? format(new Date(user.last_sign_in_at), 'PPP') : 'Never'}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setDeleteTarget({ type: 'user', id: user.id, extra: user })}
-                          disabled={user.roles.includes('admin')}
-                          className="hover:bg-accent/10 hover:text-accent"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          </Card>
-        </motion.div>
-
-        {/* Photos Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.24 }}
-        >
-          <Card className="p-6">
-            <div className="flex items-center gap-3 mb-6">
-              <ImageOff className="h-5 w-5 text-brand" />
-              <h2 className="font-semibold">Upload Records ({records.length})</h2>
-            </div>
-
-            <div className="space-y-6">
-              {records.map((record) => (
-                <div key={record.id} className="p-4 rounded-xl bg-muted/30">
-                  <div className="flex items-start justify-between mb-4">
-                    <div>
-                      <h3 className="font-medium text-lg">{record.no_surat_jalan}</h3>
-                      <div className="flex items-center gap-3 mt-1 text-sm text-muted-foreground">
-                        <span>{record.tipe}</span>
-                        <span>•</span>
-                        <span>{record.supir}</span>
-                        <span>•</span>
-                        <span>{format(new Date(record.tanggal), 'PPP')}</span>
-                      </div>
-                    </div>
-                    <Badge>{record.file_count} files</Badge>
-                  </div>
-
-                  {photos[record.id] && (
-                    <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-3">
-                      {photos[record.id].map((photo) => (
-                        <div key={photo.id} className="relative group">
-                          <div className="aspect-square rounded-lg overflow-hidden glass-card">
-                            <img
-                              src={`${supabase.storage.from('surat-jalan-uploads').getPublicUrl(`${record.folder_path}/${photo.name}`).data.publicUrl}`}
-                              alt={photo.name}
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                          <Button
-                            variant="destructive"
-                            size="icon"
-                            className="absolute -top-2 -right-2 h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity shadow-soft"
-                            onClick={() => setDeleteTarget({ 
-                              type: 'photo', 
-                              id: photo.id, 
-                              extra: { recordId: record.id, filePath: record.folder_path, fileName: photo.name }
-                            })}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                          <p className="text-xs text-muted-foreground mt-1 truncate">{photo.name}</p>
+                      ) : (
+                        <div className="text-center py-6 text-muted-foreground">
+                          <ImageOff className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                          <p className="text-sm">No photos in this record</p>
                         </div>
-                      ))}
-                    </div>
-                  )}
+                      )}
+                    </motion.div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </Card>
-        </motion.div>
-      </div>
+              )}
+            </Card>
+          </motion.div>
+        </div>
 
-      {/* Delete Confirmation Dialog */}
-      <AlertDialog open={!!deleteTarget} onOpenChange={() => setDeleteTarget(null)}>
-        <AlertDialogContent className="glass-card">
-          <AlertDialogHeader>
-            <div className="flex items-center gap-3 mb-2">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent/10">
-                <AlertTriangle className="h-5 w-5 text-accent" />
-              </div>
-              <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
-            </div>
-            <AlertDialogDescription>
-              {deleteTarget?.type === 'user' && (
-                <>
-                  Are you sure you want to delete user <strong>{deleteTarget.extra?.email}</strong>? 
-                  This will permanently delete their account, all upload records, and associated photos. 
-                  This action cannot be undone.
-                </>
-              )}
-              {deleteTarget?.type === 'photo' && (
-                <>
-                  Are you sure you want to delete this photo? This action cannot be undone.
-                </>
-              )}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                if (deleteTarget?.type === 'user') {
-                  handleDeleteUser(deleteTarget.id);
-                } else if (deleteTarget?.type === 'photo') {
-                  handleDeletePhoto(
-                    deleteTarget.extra.recordId,
-                    deleteTarget.extra.filePath,
-                    deleteTarget.extra.fileName
-                  );
-                }
-              }}
-              disabled={isDeleting}
-              className="bg-accent hover:bg-accent/90"
-            >
-              {isDeleting ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Deleting...
-                </>
-              ) : (
-                'Delete'
-              )}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </div>
+        {/* Delete Confirmation Dialog */}
+        <AnimatePresence>
+          {deleteTarget && (
+            <AlertDialog open={!!deleteTarget} onOpenChange={() => setDeleteTarget(null)}>
+              <AlertDialogContent className="glass-card">
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <AlertDialogHeader>
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-destructive/10">
+                        <AlertTriangle className="h-5 w-5 text-destructive" />
+                      </div>
+                      <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
+                    </div>
+                    <AlertDialogDescription className="text-base">
+                      {deleteTarget?.type === 'user' && (
+                        <>
+                          Are you sure you want to delete user <strong>{deleteTarget.extra?.email}</strong>? 
+                          This will permanently delete their account, all upload records, and associated photos. 
+                          <br /><br />
+                          <span className="text-destructive font-medium">⚠️ This action cannot be undone.</span>
+                        </>
+                      )}
+                      {deleteTarget?.type === 'photo' && (
+                        <>
+                          Are you sure you want to delete this photo?
+                          <br /><br />
+                          <span className="text-destructive font-medium">⚠️ This action cannot be undone.</span>
+                        </>
+                      )}
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel disabled={isDeleting} className="hover-lift">Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={() => {
+                        if (deleteTarget?.type === 'user') {
+                          handleDeleteUser(deleteTarget.id);
+                        } else if (deleteTarget?.type === 'photo') {
+                          handleDeletePhoto(
+                            deleteTarget.extra.recordId,
+                            deleteTarget.extra.filePath,
+                            deleteTarget.extra.fileName
+                          );
+                        }
+                      }}
+                      disabled={isDeleting}
+                      className="bg-destructive hover:bg-destructive/90 hover-lift"
+                    >
+                      {isDeleting ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Deleting...
+                        </>
+                      ) : (
+                        <>
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Delete
+                        </>
+                      )}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </motion.div>
+              </AlertDialogContent>
+            </AlertDialog>
+          )}
+        </AnimatePresence>
+      </div>
+    </TooltipProvider>
   );
 }
