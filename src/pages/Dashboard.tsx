@@ -3,11 +3,12 @@ import { KPICard } from '@/components/dashboard/KPICard';
 import { UploadsChart } from '@/components/dashboard/UploadsChart';
 import { TypeChart } from '@/components/dashboard/TypeChart';
 import { RecentUploadsTable } from '@/components/dashboard/RecentUploadsTable';
-import { QuickActions } from '@/components/dashboard/QuickActions';
-import { Camera, FolderOpen, HardDrive, TrendingUp, Loader2 } from 'lucide-react';
+import { Camera, FolderOpen, HardDrive, TrendingUp, Loader2, Upload, Download } from 'lucide-react';
+import { Card } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 
 interface Stats {
   totalRecords: number;
@@ -27,6 +28,7 @@ interface TypeData {
 }
 
 export default function Dashboard() {
+  const navigate = useNavigate();
   const [stats, setStats] = useState<Stats>({
     totalRecords: 0,
     totalPhotos: 0,
@@ -129,6 +131,58 @@ export default function Dashboard() {
           </p>
         </motion.div>
 
+        {/* Quick Action Cards */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="grid grid-cols-1 md:grid-cols-3 gap-4"
+        >
+          <Card 
+            className="p-6 cursor-pointer hover:shadow-lg transition-all hover:border-primary group"
+            onClick={() => navigate('/upload')}
+          >
+            <div className="flex items-center gap-4">
+              <div className="rounded-lg bg-primary/10 p-3 group-hover:bg-primary/20 transition-colors">
+                <Upload className="h-6 w-6 text-primary" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-foreground">Upload Photos</h3>
+                <p className="text-sm text-muted-foreground">Add new delivery photos</p>
+              </div>
+            </div>
+          </Card>
+
+          <Card 
+            className="p-6 cursor-pointer hover:shadow-lg transition-all hover:border-accent group"
+            onClick={() => navigate('/browse')}
+          >
+            <div className="flex items-center gap-4">
+              <div className="rounded-lg bg-accent/10 p-3 group-hover:bg-accent/20 transition-colors">
+                <FolderOpen className="h-6 w-6 text-accent" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-foreground">Browse Photos</h3>
+                <p className="text-sm text-muted-foreground">View all deliveries</p>
+              </div>
+            </div>
+          </Card>
+
+          <Card 
+            className="p-6 cursor-pointer hover:shadow-lg transition-all hover:border-muted-foreground/20 group"
+          >
+            <div className="flex items-center gap-4">
+              <div className="rounded-lg bg-muted p-3 group-hover:bg-muted/80 transition-colors">
+                <Download className="h-6 w-6 text-muted-foreground" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-foreground">Export CSV</h3>
+                <p className="text-sm text-muted-foreground">Download reports</p>
+              </div>
+            </div>
+          </Card>
+        </motion.div>
+
         {/* KPI Cards */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <KPICard
@@ -171,15 +225,8 @@ export default function Dashboard() {
           <TypeChart data={typeData} />
         </div>
 
-        {/* Tables & Actions */}
-        <div className="grid gap-4 lg:grid-cols-3">
-          <div className="lg:col-span-2">
-            <RecentUploadsTable uploads={recentUploads} />
-          </div>
-          <div>
-            <QuickActions />
-          </div>
-        </div>
+        {/* Recent Uploads Table */}
+        <RecentUploadsTable uploads={recentUploads} />
       </main>
 
       {/* Footer */}
