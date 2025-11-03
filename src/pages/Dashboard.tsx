@@ -151,6 +151,8 @@ export default function Dashboard() {
             title="Active Drivers"
             value={stats.driversCount}
             icon={TrendingUp}
+            delta={5}
+            deltaLabel="vs last month"
             index={2}
           />
           <KPICard
