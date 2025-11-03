@@ -425,16 +425,13 @@ export default function Browse() {
         {/* Results Area */}
         <div className="flex-1 overflow-hidden relative">
           {!selectedFolder ? (
-            <div className="flex items-center justify-center h-full text-center p-8">
-              <div>
-                <h3 className="text-lg font-semibold text-foreground mb-2">
-                  Select a folder to view photos
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  Choose a folder from the tree on the left to browse photos
-                </p>
-              </div>
-            </div>
+            <FolderGrid 
+              folders={folderTree} 
+              onFolderClick={(folder) => {
+                setSelectedFolder(folder.path);
+                setSelectedNode(folder);
+              }} 
+            />
           ) : selectedNode?.type !== 'nosj' && selectedNode?.children ? (
             <FolderGrid 
               folders={selectedNode.children} 
