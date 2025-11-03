@@ -45,14 +45,14 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4">
+    <div className="min-h-screen flex items-center justify-center bg-background px-3 sm:px-4 py-6">
       <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <div className="inline-flex items-center justify-center mx-auto mb-4">
-            <img src={scaffoldingLogo} alt="Scaffolding Logo" className="h-16 w-auto" />
+        <CardHeader className="text-center space-y-2">
+          <div className="inline-flex items-center justify-center mx-auto mb-2 sm:mb-4">
+            <img src={scaffoldingLogo} alt="Scaffolding Logo" className="h-12 sm:h-16 w-auto" />
           </div>
-          <CardTitle>{isSignUp ? 'Create Account' : 'Login'}</CardTitle>
-          <CardDescription>
+          <CardTitle className="text-xl sm:text-2xl">{isSignUp ? 'Create Account' : 'Login'}</CardTitle>
+          <CardDescription className="text-sm">
             {isSignUp
               ? 'Sign up to start uploading delivery documentation'
               : 'Sign in to your Documenting System account'}

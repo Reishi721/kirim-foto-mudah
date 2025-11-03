@@ -135,19 +135,19 @@ export default function Dashboard() {
     <div className="min-h-screen bg-background">
       <DashboardHeader />
       
-      <main className="container mx-auto px-4 py-6 space-y-6">
+      <main className="container mx-auto px-4 sm:px-6 py-4 sm:py-6 space-y-4 sm:space-y-6">
         {/* Hero Section */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.22 }}
-          className="relative overflow-hidden rounded-2xl p-8 glass-card"
+          className="relative overflow-hidden rounded-xl sm:rounded-2xl p-4 sm:p-8 glass-card"
         >
           <div className="absolute top-0 left-0 w-full h-1 bg-gradient-brand opacity-60" />
           <div className="space-y-2">
-            <h1 className="text-display font-bold">Dashboard</h1>
-            <div className="flex items-center gap-4">
-              <p className="text-muted-foreground text-base leading-relaxed">
+            <h1 className="text-2xl sm:text-display font-bold">Dashboard</h1>
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+              <p className="text-muted-foreground text-sm sm:text-base leading-relaxed">
                 Welcome back! Here's what's happening with your deliveries.
               </p>
               <span className="text-xs text-muted-foreground/60">Updated 5m ago</span>
@@ -160,36 +160,36 @@ export default function Dashboard() {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.12, duration: 0.22 }}
-          className="grid grid-cols-1 md:grid-cols-2 gap-6"
+          className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6"
         >
           <Card 
-            className="relative overflow-hidden p-8 cursor-pointer hover-lift group"
+            className="relative overflow-hidden p-4 sm:p-8 cursor-pointer hover-lift group"
             onClick={() => navigate('/upload')}
           >
             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-primary" />
-            <div className="flex items-start gap-6">
-              <div className="rounded-xl bg-brand/10 p-4 group-hover:bg-brand/20 transition-colors duration-220">
-                <Upload className="h-8 w-8 text-brand" />
+            <div className="flex items-start gap-3 sm:gap-6">
+              <div className="rounded-lg sm:rounded-xl bg-brand/10 p-3 sm:p-4 group-hover:bg-brand/20 transition-colors duration-220">
+                <Upload className="h-6 w-6 sm:h-8 sm:w-8 text-brand" />
               </div>
               <div className="flex-1">
-                <h2 className="font-semibold text-xl mb-1">Upload Photos</h2>
-                <p className="text-sm text-muted-foreground leading-relaxed">Add new delivery photos with metadata</p>
+                <h2 className="font-semibold text-lg sm:text-xl mb-1">Upload Photos</h2>
+                <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">Add new delivery photos with metadata</p>
               </div>
             </div>
           </Card>
 
           <Card 
-            className="relative overflow-hidden p-8 cursor-pointer hover-lift group"
+            className="relative overflow-hidden p-4 sm:p-8 cursor-pointer hover-lift group"
             onClick={() => navigate('/browse')}
           >
             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-success" />
-            <div className="flex items-start gap-6">
-              <div className="rounded-xl bg-success/10 p-4 group-hover:bg-success/20 transition-colors duration-220">
-                <FolderOpen className="h-8 w-8 text-success" />
+            <div className="flex items-start gap-3 sm:gap-6">
+              <div className="rounded-lg sm:rounded-xl bg-success/10 p-3 sm:p-4 group-hover:bg-success/20 transition-colors duration-220">
+                <FolderOpen className="h-6 w-6 sm:h-8 sm:w-8 text-success" />
               </div>
               <div className="flex-1">
-                <h2 className="font-semibold text-xl mb-1">Browse Photos</h2>
-                <p className="text-sm text-muted-foreground leading-relaxed">View and manage all delivery records</p>
+                <h2 className="font-semibold text-lg sm:text-xl mb-1">Browse Photos</h2>
+                <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">View and manage all delivery records</p>
               </div>
             </div>
           </Card>
@@ -203,17 +203,17 @@ export default function Dashboard() {
             transition={{ delay: 0.18, duration: 0.22 }}
           >
             <Card 
-              className="relative overflow-hidden p-6 cursor-pointer hover-lift group border-accent/50"
+              className="relative overflow-hidden p-4 sm:p-6 cursor-pointer hover-lift group border-accent/50"
               onClick={() => navigate('/admin')}
             >
               <div className="absolute top-0 left-0 w-full h-1 bg-gradient-from-l-accent to-accent-foreground" />
-              <div className="flex items-center gap-4">
-                <div className="rounded-xl bg-accent/10 p-3 group-hover:bg-accent/20 transition-colors duration-220">
-                  <Shield className="h-6 w-6 text-accent" />
+              <div className="flex items-center gap-3 sm:gap-4">
+                <div className="rounded-lg sm:rounded-xl bg-accent/10 p-2 sm:p-3 group-hover:bg-accent/20 transition-colors duration-220">
+                  <Shield className="h-5 w-5 sm:h-6 sm:w-6 text-accent" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-lg">Admin Dashboard</h3>
-                  <p className="text-sm text-muted-foreground">Manage users and content</p>
+                  <h3 className="font-semibold text-base sm:text-lg">Admin Dashboard</h3>
+                  <p className="text-xs sm:text-sm text-muted-foreground">Manage users and content</p>
                 </div>
               </div>
             </Card>

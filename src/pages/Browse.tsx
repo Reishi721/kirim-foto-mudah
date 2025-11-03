@@ -282,8 +282,8 @@ export default function Browse() {
   }
 
   return (
-    <div className="flex h-screen bg-background">
-      {/* Left Panel - Folder Tree (Collapsible) */}
+    <div className="flex h-screen bg-background overflow-hidden">
+      {/* Left Panel - Folder Tree (Collapsible) - Hidden on mobile */}
       <AnimatePresence>
         {isSidebarOpen && (
           <motion.div
@@ -291,7 +291,7 @@ export default function Browse() {
             animate={{ width: 320, opacity: 1 }}
             exit={{ width: 0, opacity: 0 }}
             transition={{ duration: 0.3, ease: 'easeInOut' }}
-            className="border-r flex flex-col overflow-hidden"
+            className="border-r flex-col overflow-hidden hidden md:flex"
           >
             <div className="p-4 border-b flex items-center justify-between">
               <div className="flex-1">
@@ -326,14 +326,14 @@ export default function Browse() {
       {/* Right Panel - Results */}
       <div className="flex-1 flex flex-col">
         {/* Toolbar */}
-        <div className="flex items-center justify-between px-4 py-3 border-b bg-card">
-          <div className="flex items-center gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-3 sm:px-4 py-3 border-b bg-card">
+          <div className="flex items-center gap-2 overflow-x-auto">
             {!isSidebarOpen && (
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setIsSidebarOpen(true)}
-                className="flex items-center gap-2"
+                className="hidden md:flex items-center gap-2 shrink-0"
               >
                 <PanelLeft className="h-4 w-4" />
                 <span className="hidden sm:inline">Folders</span>
@@ -344,13 +344,13 @@ export default function Browse() {
                 variant="outline"
                 size="sm"
                 onClick={handleGoBack}
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 shrink-0"
               >
                 <ChevronLeft className="h-4 w-4" />
-                <span className="hidden sm:inline">Previous Folder</span>
+                <span className="hidden sm:inline">Back</span>
               </Button>
             )}
-            <h1 className="text-xl font-semibold text-foreground">Browse Photos</h1>
+            <h1 className="text-lg sm:text-xl font-semibold text-foreground whitespace-nowrap">Browse Photos</h1>
           </div>
           <div className="flex items-center gap-2">
             <Button
@@ -365,7 +365,7 @@ export default function Browse() {
               size="sm"
               onClick={() => setViewMode('list')}
             >
-              <List className="w-4 w-4" />
+              <List className="w-4 h-4" />
             </Button>
           </div>
         </div>

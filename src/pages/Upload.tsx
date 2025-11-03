@@ -294,30 +294,30 @@ export default function Upload() {
   const overallProgress = totalFiles > 0 ? (completedFiles / totalFiles) * 100 : 0;
 
   return (
-    <div className="min-h-screen bg-background pb-32">
+    <div className="min-h-screen bg-background pb-20 sm:pb-32">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.22 }}
-        className="relative overflow-hidden glass-card mb-8"
+        className="relative overflow-hidden glass-card mb-4 sm:mb-8"
       >
         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-brand opacity-60" />
-        <div className="container mx-auto px-4 py-8">
-          <div className="flex items-center gap-4">
-            <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-primary shadow-soft">
-              <UploadIcon className="h-7 w-7 text-primary-foreground" />
+        <div className="container mx-auto px-4 py-4 sm:py-8">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <div className="flex h-10 w-10 sm:h-14 sm:w-14 items-center justify-center rounded-lg sm:rounded-xl bg-gradient-primary shadow-soft">
+              <UploadIcon className="h-5 w-5 sm:h-7 sm:w-7 text-primary-foreground" />
             </div>
             <div>
-              <h1 className="text-display font-bold">Upload Photos</h1>
-              <p className="text-base text-muted-foreground mt-1">Fast delivery documentation</p>
+              <h1 className="text-2xl sm:text-display font-bold">Upload Photos</h1>
+              <p className="text-sm sm:text-base text-muted-foreground mt-1">Fast delivery documentation</p>
             </div>
           </div>
         </div>
       </motion.div>
 
       {/* Main Content */}
-      <div className="container mx-auto px-4">
+      <div className="container mx-auto px-3 sm:px-4">
         <div className="max-w-3xl mx-auto">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -327,8 +327,8 @@ export default function Upload() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.12, duration: 0.22 }}
               >
-                <Card className="p-6 md:p-8">
-                  <h2 className="font-semibold mb-6">Delivery Information</h2>
+                <Card className="p-4 sm:p-6 md:p-8">
+                  <h2 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6">Delivery Information</h2>
                   
                   <div className="space-y-6">
                     {/* Document Number */}
