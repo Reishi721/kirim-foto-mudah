@@ -1,5 +1,5 @@
-import { useEffect, useState, useRef } from 'react';
-import maplibregl from 'maplibre-gl';
+import { useEffect, useState } from 'react';
+import { Map, Marker } from 'pigeon-maps';
 import { supabase } from '@/integrations/supabase/client';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,7 +9,6 @@ import { Loader2, Download, MapPin, Navigation } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { motion } from 'framer-motion';
-import 'maplibre-gl/dist/maplibre-gl.css';
 
 interface PhotoLocation {
   id: string;
@@ -25,47 +24,20 @@ interface PhotoLocation {
   };
 }
 
-export default function Map() {
+export default function MapPage() {
   const [locations, setLocations] = useState<PhotoLocation[]>([]);
   const [selectedDriver, setSelectedDriver] = useState<string>('all');
   const [drivers, setDrivers] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState<string>('all');
   const [dates, setDates] = useState<string[]>([]);
-  
-  const mapContainer = useRef<HTMLDivElement>(null);
-  const map = useRef<maplibregl.Map | null>(null);
-  const markers = useRef<maplibregl.Marker[]>([]);
+  const [selectedMarker, setSelectedMarker] = useState<string | null>(null);
+  const [center, setCenter] = useState<[number, number]>([-6.2088, 106.8456]);
+  const [zoom, setZoom] = useState(13);
 
   useEffect(() => {
     loadMapData();
   }, []);
-
-  useEffect(() => {
-    if (!mapContainer.current || map.current) return;
-
-    map.current = new maplibregl.Map({
-      container: mapContainer.current,
-      style: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
-      center: [106.8456, -6.2088],
-      zoom: 13
-    });
-
-    map.current.addControl(new maplibregl.NavigationControl(), 'top-right');
-
-    return () => {
-      if (map.current) {
-        map.current.remove();
-        map.current = null;
-      }
-    };
-  }, []);
-
-  useEffect(() => {
-    if (map.current && locations.length > 0) {
-      updateMarkers();
-    }
-  }, [locations, selectedDriver, selectedDate]);
 
   const loadMapData = async () => {
     setIsLoading(true);
@@ -131,55 +103,21 @@ export default function Map() {
 
       const uniqueDates = [...new Set(formattedLocations.map(loc => loc.uploadRecord.tanggal))];
       setDates(uniqueDates.sort().reverse());
+
+      if (formattedLocations.length > 0) {
+        const lats = formattedLocations.map(loc => loc.latitude);
+        const lngs = formattedLocations.map(loc => loc.longitude);
+        const avgLat = lats.reduce((a, b) => a + b) / lats.length;
+        const avgLng = lngs.reduce((a, b) => a + b) / lngs.length;
+        setCenter([avgLat, avgLng]);
+        setZoom(12);
+      }
     } catch (error) {
       console.error('Error loading map data:', error);
       toast.error('Failed to load map data');
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const updateMarkers = () => {
-    if (!map.current) return;
-
-    // Remove existing markers
-    markers.current.forEach(marker => marker.remove());
-    markers.current = [];
-
-    // Filter locations
-    const filteredLocations = locations.filter(loc => {
-      if (selectedDriver !== 'all' && loc.uploadRecord.supir !== selectedDriver) return false;
-      if (selectedDate !== 'all' && loc.uploadRecord.tanggal !== selectedDate) return false;
-      return true;
-    });
-
-    if (filteredLocations.length === 0) return;
-
-    // Add markers with default red pins
-    filteredLocations.forEach(loc => {
-      const popupHTML = `
-        <div style="padding: 8px; min-width: 200px;">
-          <p style="font-weight: 600; margin-bottom: 4px;">${loc.fileName}</p>
-          <p style="font-size: 0.875rem;">Doc: ${loc.uploadRecord.no_surat_jalan}</p>
-          <p style="font-size: 0.875rem;">Driver: ${loc.uploadRecord.supir}</p>
-          <p style="font-size: 0.875rem;">Type: ${loc.uploadRecord.tipe}</p>
-          <p style="font-size: 0.875rem;">Date: ${format(new Date(loc.uploadRecord.tanggal), 'PPP')}</p>
-          ${loc.capturedAt ? `<p style="font-size: 0.75rem; color: #6b7280;">Captured: ${format(new Date(loc.capturedAt), 'PPp')}</p>` : ''}
-        </div>
-      `;
-
-      const marker = new maplibregl.Marker({ color: '#ef4444' })
-        .setLngLat([loc.longitude, loc.latitude])
-        .setPopup(new maplibregl.Popup({ offset: 25 }).setHTML(popupHTML))
-        .addTo(map.current!);
-
-      markers.current.push(marker);
-    });
-
-    // Fit bounds
-    const bounds = new maplibregl.LngLatBounds();
-    filteredLocations.forEach(loc => bounds.extend([loc.longitude, loc.latitude]));
-    map.current.fitBounds(bounds, { padding: 50, duration: 0 });
   };
 
   const filteredLocations = locations.filter(loc => {
@@ -328,7 +266,55 @@ export default function Map() {
               <p className="text-sm">Upload photos with GPS coordinates to see them here</p>
             </div>
           ) : (
-            <div ref={mapContainer} className="h-full w-full" />
+            <div className="relative h-full w-full">
+              <Map
+                center={center}
+                zoom={zoom}
+                onBoundsChanged={({ center: newCenter, zoom: newZoom }) => {
+                  setCenter(newCenter);
+                  setZoom(newZoom);
+                }}
+              >
+                {filteredLocations.map(loc => (
+                  <Marker
+                    key={loc.id}
+                    anchor={[loc.latitude, loc.longitude]}
+                    color="#ef4444"
+                    onClick={() => setSelectedMarker(selectedMarker === loc.id ? null : loc.id)}
+                  />
+                ))}
+              </Map>
+
+              {selectedMarker && (() => {
+                const loc = filteredLocations.find(l => l.id === selectedMarker);
+                if (!loc) return null;
+                
+                return (
+                  <div
+                    className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-white rounded-lg shadow-lg p-4 z-10 max-w-sm"
+                  >
+                    <button
+                      onClick={() => setSelectedMarker(null)}
+                      className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
+                    >
+                      ✕
+                    </button>
+                    <div className="space-y-1 text-sm">
+                      <p className="font-semibold text-base">{loc.fileName}</p>
+                      <p>Doc: {loc.uploadRecord.no_surat_jalan}</p>
+                      <p>Driver: {loc.uploadRecord.supir}</p>
+                      <p>Type: {loc.uploadRecord.tipe}</p>
+                      <p>Date: {format(new Date(loc.uploadRecord.tanggal), 'PPP')}</p>
+                      {loc.capturedAt && (
+                        <p className="text-xs text-gray-500">
+                          Captured: {format(new Date(loc.capturedAt), 'PPp')}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
           )}
         </Card>
       </div>
