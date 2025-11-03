@@ -55,19 +55,7 @@ export default function Browse() {
   useEffect(() => {
     const folderParam = searchParams.get('folder');
     if (folderParam && folderTree.length > 0) {
-      // Find the node in the folder tree
-      const findNode = (nodes: FolderNode[], path: string): FolderNode | null => {
-        for (const node of nodes) {
-          if (node.path === path) return node;
-          if (node.children) {
-            const found = findNode(node.children, path);
-            if (found) return found;
-          }
-        }
-        return null;
-      };
-
-      const node = findNode(folderTree, folderParam);
+      const node = findNodeInTree(folderTree, folderParam);
       if (node) {
         setSelectedFolder(node.path);
         setSelectedNode(node);
@@ -235,20 +223,7 @@ export default function Browse() {
     } else {
       // Navigate to parent folder
       const parentPath = pathParts.join('/');
-      
-      // Find the parent node in the folder tree
-      const findNode = (nodes: FolderNode[], path: string): FolderNode | null => {
-        for (const node of nodes) {
-          if (node.path === path) return node;
-          if (node.children) {
-            const found = findNode(node.children, path);
-            if (found) return found;
-          }
-        }
-        return null;
-      };
-      
-      const parentNode = findNode(folderTree, parentPath);
+      const parentNode = findNodeInTree(folderTree, parentPath);
       setSelectedFolder(parentPath);
       setSelectedNode(parentNode);
     }
@@ -293,6 +268,18 @@ export default function Browse() {
       path: parts.slice(0, index + 1).join('/'),
     }));
   }, [selectedFolder]);
+
+  // Helper function to find a node in the folder tree recursively
+  const findNodeInTree = (nodes: FolderNode[], path: string): FolderNode | null => {
+    for (const node of nodes) {
+      if (node.path === path) return node;
+      if (node.children) {
+        const found = findNodeInTree(node.children, path);
+        if (found) return found;
+      }
+    }
+    return null;
+  };
 
   if (isLoading) {
     return (
@@ -413,7 +400,7 @@ export default function Browse() {
                       ) : (
                         <BreadcrumbLink
                           onClick={() => {
-                            const node = folderTree.find((n) => n.path === item.path);
+                            const node = findNodeInTree(folderTree, item.path);
                             setSelectedFolder(item.path);
                             setSelectedNode(node || null);
                           }}
