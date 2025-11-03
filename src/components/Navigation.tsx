@@ -3,7 +3,7 @@ import { Upload, FolderOpen, LogOut, Home, Map } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import victoryLogo from '@/assets/victory-logo.png';
+import scaffoldingLogo from '@/assets/scaffolding-logo.png';
 
 export function Navigation() {
   const location = useLocation();
@@ -20,8 +20,8 @@ export function Navigation() {
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center gap-8">
             <button onClick={() => navigate('/')} className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-              <img src={victoryLogo} alt="Victory Logo" className="h-10 w-auto" />
-              <span className="font-semibold text-lg text-foreground">Victory Documenting</span>
+              <img src={scaffoldingLogo} alt="Scaffolding Logo" className="h-10 w-auto" />
+              <span className="font-semibold text-lg text-foreground">Documenting System</span>
             </button>
 
             <div className="flex items-center gap-2">
