@@ -21,6 +21,7 @@ interface PhotoLocation {
     supir: string;
     tipe: string;
     tanggal: string;
+    customer_name: string | null;
   };
 }
 
@@ -54,7 +55,8 @@ export default function MapPage() {
             no_surat_jalan,
             supir,
             tipe,
-            tanggal
+            tanggal,
+            customer_name
           )
         `)
         .not('latitude', 'is', null)
@@ -91,7 +93,8 @@ export default function MapPage() {
           no_surat_jalan: upload.no_surat_jalan,
           supir: upload.supir,
           tipe: upload.tipe,
-          tanggal: upload.tanggal
+          tanggal: upload.tanggal,
+          customer_name: upload.customer_name
         }
       }));
 
@@ -137,7 +140,8 @@ export default function MapPage() {
           driver: loc.uploadRecord.supir,
           type: loc.uploadRecord.tipe,
           date: loc.uploadRecord.tanggal,
-          capturedAt: loc.capturedAt
+          capturedAt: loc.capturedAt,
+          customerName: loc.uploadRecord.customer_name
         },
         geometry: {
           type: 'Point',
@@ -162,6 +166,7 @@ export default function MapPage() {
         '<name>' + loc.fileName + '</name>' +
         '<description>' +
           'Document No: ' + loc.uploadRecord.no_surat_jalan + '\n' +
+          'Customer: ' + (loc.uploadRecord.customer_name || 'N/A') + '\n' +
           'Driver: ' + loc.uploadRecord.supir + '\n' +
           'Type: ' + loc.uploadRecord.tipe + '\n' +
           'Date: ' + loc.uploadRecord.tanggal +
@@ -302,6 +307,9 @@ export default function MapPage() {
                     <div className="space-y-1 text-sm">
                       <p className="font-semibold text-base">{loc.fileName}</p>
                       <p>Doc: {loc.uploadRecord.no_surat_jalan}</p>
+                      {loc.uploadRecord.customer_name && (
+                        <p>Customer: {loc.uploadRecord.customer_name}</p>
+                      )}
                       <p>Driver: {loc.uploadRecord.supir}</p>
                       <p>Type: {loc.uploadRecord.tipe}</p>
                       <p>Date: {format(new Date(loc.uploadRecord.tanggal), 'PPP')}</p>
