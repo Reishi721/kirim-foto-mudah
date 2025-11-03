@@ -4,6 +4,7 @@ import { Grid3x3, List, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { FolderTree } from '@/components/browse/FolderTree';
+import { FolderGrid } from '@/components/browse/FolderGrid';
 import { FiltersToolbar } from '@/components/browse/FiltersToolbar';
 import { PhotoGrid } from '@/components/browse/PhotoGrid';
 import { PhotoList } from '@/components/browse/PhotoList';
@@ -282,14 +283,22 @@ export default function Browse() {
                 </p>
               </div>
             </div>
+          ) : selectedNode?.type !== 'nosj' && selectedNode?.children ? (
+            <FolderGrid 
+              folders={selectedNode.children} 
+              onFolderClick={(folder) => {
+                setSelectedFolder(folder.path);
+                setSelectedNode(folder);
+              }} 
+            />
           ) : selectedNode?.type !== 'nosj' ? (
             <div className="flex items-center justify-center h-full text-center p-8">
               <div>
                 <h3 className="text-lg font-semibold text-foreground mb-2">
-                  Navigate deeper to view photos
+                  No subfolders found
                 </h3>
                 <p className="text-sm text-muted-foreground">
-                  Photos are only available at the delivery/return level (No SJ)
+                  This folder appears to be empty
                 </p>
               </div>
             </div>
