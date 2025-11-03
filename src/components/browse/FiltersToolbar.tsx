@@ -129,6 +129,7 @@ export function FiltersToolbar({
                   onFiltersChange({ dateFrom: undefined, dateTo: undefined });
                 }
               }}
+              disabled={(date) => date > new Date()}
               numberOfMonths={2}
               initialFocus
               className="pointer-events-auto"
