@@ -21,6 +21,7 @@ export default function Browse() {
   const [photos, setPhotos] = useState<PhotoFile[]>([]);
   const [filteredPhotos, setFilteredPhotos] = useState<PhotoFile[]>([]);
   const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
+  const [selectedNode, setSelectedNode] = useState<FolderNode | null>(null);
   const [selectedPhoto, setSelectedPhoto] = useState<PhotoFile | null>(null);
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0);
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
@@ -41,12 +42,15 @@ export default function Browse() {
     loadRecords();
   }, []);
 
-  // Load photos when folder selected
+  // Load photos when leaf folder selected
   useEffect(() => {
-    if (selectedFolder) {
+    if (selectedFolder && selectedNode?.type === 'nosj') {
       loadPhotosFromFolder(selectedFolder);
+    } else if (selectedFolder) {
+      // Clear photos for non-leaf nodes
+      setPhotos([]);
     }
-  }, [selectedFolder]);
+  }, [selectedFolder, selectedNode]);
 
   // Apply filters
   useEffect(() => {
@@ -226,7 +230,10 @@ export default function Browse() {
         <div className="flex-1 overflow-y-auto">
           <FolderTree
             nodes={folderTree}
-            onNodeClick={(node) => setSelectedFolder(node.path)}
+            onNodeClick={(node) => {
+              setSelectedFolder(node.path);
+              setSelectedNode(node);
+            }}
             selectedPath={selectedFolder || undefined}
           />
         </div>
@@ -272,6 +279,17 @@ export default function Browse() {
                 </h3>
                 <p className="text-sm text-muted-foreground">
                   Choose a folder from the tree on the left to browse photos
+                </p>
+              </div>
+            </div>
+          ) : selectedNode?.type !== 'nosj' ? (
+            <div className="flex items-center justify-center h-full text-center p-8">
+              <div>
+                <h3 className="text-lg font-semibold text-foreground mb-2">
+                  Navigate deeper to view photos
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  Photos are only available at the delivery/return level (No SJ)
                 </p>
               </div>
             </div>
