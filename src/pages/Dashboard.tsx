@@ -3,6 +3,10 @@ import { KPICard } from '@/components/dashboard/KPICard';
 import { UploadsChart } from '@/components/dashboard/UploadsChart';
 import { TypeChart } from '@/components/dashboard/TypeChart';
 import { RecentUploadsTable } from '@/components/dashboard/RecentUploadsTable';
+import { PredictiveForecast } from '@/components/dashboard/PredictiveForecast';
+import { DriverLeaderboard } from '@/components/dashboard/DriverLeaderboard';
+import { AnomalyDetector } from '@/components/dashboard/AnomalyDetector';
+import { TimelineDrilldown } from '@/components/dashboard/TimelineDrilldown';
 import { Camera, FolderOpen, HardDrive, TrendingUp, Loader2, Upload, Download, Shield } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
@@ -268,11 +272,33 @@ export default function Dashboard() {
           <TypeChart data={typeData} />
         </motion.div>
 
-        {/* Recent Uploads Table */}
+        {/* Enhanced Analytics Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.42, duration: 0.22 }}
+          className="grid gap-6 lg:grid-cols-2"
+        >
+          <PredictiveForecast historicalData={chartData} />
+          <AnomalyDetector uploads={recentUploads} chartData={chartData} />
+        </motion.div>
+
+        {/* Leaderboard and Timeline */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.48, duration: 0.22 }}
+          className="grid gap-6 lg:grid-cols-2"
+        >
+          <DriverLeaderboard uploads={recentUploads} />
+          <TimelineDrilldown uploads={recentUploads} />
+        </motion.div>
+
+        {/* Recent Uploads Table */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.54, duration: 0.22 }}
         >
           <RecentUploadsTable uploads={recentUploads} />
         </motion.div>
