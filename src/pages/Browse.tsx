@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Grid3x3, List, Loader2 } from 'lucide-react';
+import { Grid3x3, List, Loader2, PanelLeftClose, PanelLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { FolderTree } from '@/components/browse/FolderTree';
@@ -13,7 +13,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { buildFolderTree } from '@/lib/folderHierarchy';
 import { PhotoFile, UploadRecord, FolderNode, ViewMode, FilterState } from '@/lib/browseTypes';
 import { toast } from 'sonner';
-import { AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 
 export default function Browse() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -28,6 +28,7 @@ export default function Browse() {
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingPhotos, setIsLoadingPhotos] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   // Parse filters from URL
   const filters: FilterState = useMemo(() => ({
@@ -245,31 +246,64 @@ export default function Browse() {
 
   return (
     <div className="flex h-screen bg-background">
-      {/* Left Panel - Folder Tree */}
-      <div className="w-80 border-r flex flex-col">
-        <div className="p-4 border-b">
-          <h2 className="font-semibold text-lg text-foreground">Folder Structure</h2>
-          <p className="text-xs text-muted-foreground mt-1">
-            {records.length} delivery records
-          </p>
-        </div>
-        <div className="flex-1 overflow-y-auto">
-          <FolderTree
-            nodes={folderTree}
-            onNodeClick={(node) => {
-              setSelectedFolder(node.path);
-              setSelectedNode(node);
-            }}
-            selectedPath={selectedFolder || undefined}
-          />
-        </div>
-      </div>
+      {/* Left Panel - Folder Tree (Collapsible) */}
+      <AnimatePresence>
+        {isSidebarOpen && (
+          <motion.div
+            initial={{ width: 0, opacity: 0 }}
+            animate={{ width: 320, opacity: 1 }}
+            exit={{ width: 0, opacity: 0 }}
+            transition={{ duration: 0.3, ease: 'easeInOut' }}
+            className="border-r flex flex-col overflow-hidden"
+          >
+            <div className="p-4 border-b flex items-center justify-between">
+              <div className="flex-1">
+                <h2 className="font-semibold text-lg text-foreground">Folder Structure</h2>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {records.length} delivery records
+                </p>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setIsSidebarOpen(false)}
+                className="hover:bg-muted"
+              >
+                <PanelLeftClose className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="flex-1 overflow-y-auto">
+              <FolderTree
+                nodes={folderTree}
+                onNodeClick={(node) => {
+                  setSelectedFolder(node.path);
+                  setSelectedNode(node);
+                }}
+                selectedPath={selectedFolder || undefined}
+              />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Right Panel - Results */}
       <div className="flex-1 flex flex-col">
         {/* Toolbar */}
         <div className="flex items-center justify-between px-4 py-3 border-b bg-card">
-          <h1 className="text-xl font-semibold text-foreground">Browse Photos</h1>
+          <div className="flex items-center gap-3">
+            {!isSidebarOpen && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsSidebarOpen(true)}
+                className="flex items-center gap-2"
+              >
+                <PanelLeft className="h-4 w-4" />
+                <span className="hidden sm:inline">Folders</span>
+              </Button>
+            )}
+            <h1 className="text-xl font-semibold text-foreground">Browse Photos</h1>
+          </div>
           <div className="flex items-center gap-2">
             <Button
               variant={viewMode === 'grid' ? 'default' : 'outline'}
@@ -283,7 +317,7 @@ export default function Browse() {
               size="sm"
               onClick={() => setViewMode('list')}
             >
-              <List className="w-4 h-4" />
+              <List className="w-4 w-4" />
             </Button>
           </div>
         </div>
