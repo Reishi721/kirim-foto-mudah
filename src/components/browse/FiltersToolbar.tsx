@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { FilterState } from '@/lib/browseTypes';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import type { DateRange } from 'react-day-picker';
 
 interface FiltersToolbarProps {
   filters: FilterState;
@@ -29,8 +30,30 @@ export function FiltersToolbar({
   isMapVisible,
   onMapToggle,
 }: FiltersToolbarProps) {
-  const [dateFromOpen, setDateFromOpen] = useState(false);
-  const [dateToOpen, setDateToOpen] = useState(false);
+  const [dateRangeOpen, setDateRangeOpen] = useState(false);
+
+  // Helper function to format date without timezone conversion
+  const formatDateLocal = (dateStr: string): string => {
+    const [year, month, day] = dateStr.split('-').map(Number);
+    return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+  };
+
+  // Helper function to convert Date to local date string
+  const toLocalDateString = (date: Date): string => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  // Create DateRange object from filter state
+  const dateRange: DateRange | undefined = 
+    filters.dateFrom || filters.dateTo
+      ? {
+          from: filters.dateFrom ? new Date(filters.dateFrom + 'T00:00:00') : undefined,
+          to: filters.dateTo ? new Date(filters.dateTo + 'T00:00:00') : undefined,
+        }
+      : undefined;
 
   const activeFilterCount =
     (filters.search ? 1 : 0) +
@@ -68,56 +91,45 @@ export function FiltersToolbar({
           </SelectContent>
         </Select>
 
-        {/* Date From */}
-        <Popover open={dateFromOpen} onOpenChange={setDateFromOpen}>
+        {/* Date Range Picker */}
+        <Popover open={dateRangeOpen} onOpenChange={setDateRangeOpen}>
           <PopoverTrigger asChild>
             <Button
               variant="outline"
               className={cn(
-                'w-[160px] justify-start text-left font-normal',
-                !filters.dateFrom && 'text-muted-foreground'
+                'w-[280px] justify-start text-left font-normal',
+                !dateRange && 'text-muted-foreground'
               )}
             >
               <CalendarIcon className="mr-2 h-4 w-4" />
-              {filters.dateFrom ? format(new Date(filters.dateFrom), 'MMM dd, yyyy') : 'From date'}
+              {dateRange?.from ? (
+                dateRange.to ? (
+                  <>
+                    {format(dateRange.from, 'MMM dd, yyyy')} - {format(dateRange.to, 'MMM dd, yyyy')}
+                  </>
+                ) : (
+                  format(dateRange.from, 'MMM dd, yyyy')
+                )
+              ) : (
+                'Select date range'
+              )}
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="start">
             <Calendar
-              mode="single"
-              selected={filters.dateFrom ? new Date(filters.dateFrom) : undefined}
-              onSelect={(date) => {
-                onFiltersChange({ dateFrom: date?.toISOString().split('T')[0] });
-                setDateFromOpen(false);
+              mode="range"
+              selected={dateRange}
+              onSelect={(range: DateRange | undefined) => {
+                if (range) {
+                  onFiltersChange({
+                    dateFrom: range.from ? toLocalDateString(range.from) : undefined,
+                    dateTo: range.to ? toLocalDateString(range.to) : undefined,
+                  });
+                } else {
+                  onFiltersChange({ dateFrom: undefined, dateTo: undefined });
+                }
               }}
-              initialFocus
-              className="pointer-events-auto"
-            />
-          </PopoverContent>
-        </Popover>
-
-        {/* Date To */}
-        <Popover open={dateToOpen} onOpenChange={setDateToOpen}>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              className={cn(
-                'w-[160px] justify-start text-left font-normal',
-                !filters.dateTo && 'text-muted-foreground'
-              )}
-            >
-              <CalendarIcon className="mr-2 h-4 w-4" />
-              {filters.dateTo ? format(new Date(filters.dateTo), 'MMM dd, yyyy') : 'To date'}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="start">
-            <Calendar
-              mode="single"
-              selected={filters.dateTo ? new Date(filters.dateTo) : undefined}
-              onSelect={(date) => {
-                onFiltersChange({ dateTo: date?.toISOString().split('T')[0] });
-                setDateToOpen(false);
-              }}
+              numberOfMonths={2}
               initialFocus
               className="pointer-events-auto"
             />
@@ -187,21 +199,14 @@ export function FiltersToolbar({
               />
             </Badge>
           )}
-          {filters.dateFrom && (
+          {(filters.dateFrom || filters.dateTo) && (
             <Badge variant="secondary" className="gap-1">
-              From: {format(new Date(filters.dateFrom), 'MMM dd, yyyy')}
+              Date: {filters.dateFrom && format(new Date(filters.dateFrom + 'T00:00:00'), 'MMM dd, yyyy')}
+              {filters.dateFrom && filters.dateTo && ' - '}
+              {filters.dateTo && format(new Date(filters.dateTo + 'T00:00:00'), 'MMM dd, yyyy')}
               <X
                 className="w-3 h-3 cursor-pointer"
-                onClick={() => onFiltersChange({ dateFrom: undefined })}
-              />
-            </Badge>
-          )}
-          {filters.dateTo && (
-            <Badge variant="secondary" className="gap-1">
-              To: {format(new Date(filters.dateTo), 'MMM dd, yyyy')}
-              <X
-                className="w-3 h-3 cursor-pointer"
-                onClick={() => onFiltersChange({ dateTo: undefined })}
+                onClick={() => onFiltersChange({ dateFrom: undefined, dateTo: undefined })}
               />
             </Badge>
           )}

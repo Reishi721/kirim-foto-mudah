@@ -173,15 +173,17 @@ export default function Browse() {
       filtered = filtered.filter((p) => p.metadata?.tipe === filters.type);
     }
 
-    // Date range filter
+    // Date range filter - fixed timezone issue
     if (filters.dateFrom) {
+      const fromDate = new Date(filters.dateFrom + 'T00:00:00');
       filtered = filtered.filter(
-        (p) => !p.metadata || new Date(p.metadata.tanggal) >= new Date(filters.dateFrom!)
+        (p) => !p.metadata || new Date(p.metadata.tanggal + 'T00:00:00') >= fromDate
       );
     }
     if (filters.dateTo) {
+      const toDate = new Date(filters.dateTo + 'T23:59:59');
       filtered = filtered.filter(
-        (p) => !p.metadata || new Date(p.metadata.tanggal) <= new Date(filters.dateTo!)
+        (p) => !p.metadata || new Date(p.metadata.tanggal + 'T00:00:00') <= toDate
       );
     }
 
