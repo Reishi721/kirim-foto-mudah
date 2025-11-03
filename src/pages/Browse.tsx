@@ -11,6 +11,9 @@ import { FiltersToolbar } from '@/components/browse/FiltersToolbar';
 import { PhotoGrid } from '@/components/browse/PhotoGrid';
 import { PhotoList } from '@/components/browse/PhotoList';
 import { PreviewDrawer } from '@/components/browse/PreviewDrawer';
+import { QuickFilters } from '@/components/browse/QuickFilters';
+import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from '@/components/ui/breadcrumb';
+import { Skeleton } from '@/components/ui/skeleton';
 import { supabase } from '@/integrations/supabase/client';
 import { buildFolderTree } from '@/lib/folderHierarchy';
 import { PhotoFile, UploadRecord, FolderNode, ViewMode, FilterState } from '@/lib/browseTypes';
@@ -277,6 +280,20 @@ export default function Browse() {
     [records]
   );
 
+  const uniqueDates = useMemo(
+    () => Array.from(new Set(records.map((r) => r.tanggal))).sort().reverse(),
+    [records]
+  );
+
+  const breadcrumbPaths = useMemo(() => {
+    if (!selectedFolder) return [];
+    const parts = selectedFolder.split('/');
+    return parts.map((_, index) => ({
+      name: parts[index],
+      path: parts.slice(0, index + 1).join('/'),
+    }));
+  }, [selectedFolder]);
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -316,6 +333,17 @@ export default function Browse() {
           selectedPath={selectedFolder || undefined}
         />
       </div>
+      <QuickFilters
+        drivers={uniqueDrivers}
+        dates={uniqueDates}
+        types={['Pengiriman', 'Pengembalian']}
+        selectedDriver={filters.supir}
+        selectedDate={filters.dateFrom}
+        selectedType={filters.type !== 'all' ? filters.type : undefined}
+        onDriverSelect={(driver) => handleFiltersChange({ supir: driver })}
+        onDateSelect={(date) => handleFiltersChange({ dateFrom: date, dateTo: date })}
+        onTypeSelect={(type) => handleFiltersChange({ type: type as FilterState['type'] || 'all' })}
+      />
     </>
   );
 
@@ -360,6 +388,48 @@ export default function Browse() {
 
       {/* Right Panel - Results */}
       <div className="flex-1 flex flex-col">
+        {/* Breadcrumb Navigation */}
+        {breadcrumbPaths.length > 0 && (
+          <div className="px-3 sm:px-4 py-2 border-b bg-muted/30">
+            <Breadcrumb>
+              <BreadcrumbList>
+                <BreadcrumbItem>
+                  <BreadcrumbLink
+                    onClick={() => {
+                      setSelectedFolder(null);
+                      setSelectedNode(null);
+                    }}
+                    className="cursor-pointer"
+                  >
+                    Home
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
+                {breadcrumbPaths.map((item, index) => (
+                  <>
+                    <BreadcrumbSeparator key={`sep-${item.path}`} />
+                    <BreadcrumbItem key={item.path}>
+                      {index === breadcrumbPaths.length - 1 ? (
+                        <BreadcrumbPage>{item.name}</BreadcrumbPage>
+                      ) : (
+                        <BreadcrumbLink
+                          onClick={() => {
+                            const node = folderTree.find((n) => n.path === item.path);
+                            setSelectedFolder(item.path);
+                            setSelectedNode(node || null);
+                          }}
+                          className="cursor-pointer"
+                        >
+                          {item.name}
+                        </BreadcrumbLink>
+                      )}
+                    </BreadcrumbItem>
+                  </>
+                ))}
+              </BreadcrumbList>
+            </Breadcrumb>
+          </div>
+        )}
+
         {/* Toolbar */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-3 sm:px-4 py-3 border-b bg-card">
           <div className="flex items-center gap-2 overflow-x-auto">
@@ -452,8 +522,16 @@ export default function Browse() {
               </div>
             </div>
           ) : isLoadingPhotos ? (
-            <div className="flex items-center justify-center h-full">
-              <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            <div className="p-6 space-y-4">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <div key={i} className="space-y-2">
+                    <Skeleton className="w-full aspect-square rounded-lg" />
+                    <Skeleton className="h-4 w-3/4" />
+                    <Skeleton className="h-3 w-1/2" />
+                  </div>
+                ))}
+              </div>
             </div>
           ) : viewMode === 'grid' ? (
             <PhotoGrid photos={filteredPhotos} onPhotoClick={handlePhotoClick} />

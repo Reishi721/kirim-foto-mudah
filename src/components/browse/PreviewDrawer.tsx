@@ -1,8 +1,9 @@
+import { useState } from 'react';
 import { X, ChevronLeft, ChevronRight, Download, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { PhotoFile } from '@/lib/browseTypes';
 import { format } from 'date-fns';
-import { motion } from 'framer-motion';
+import { motion, useMotionValue, PanInfo } from 'framer-motion';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 
@@ -25,6 +26,19 @@ export function PreviewDrawer({
   onNext,
   onOpenMap,
 }: PreviewDrawerProps) {
+  const x = useMotionValue(0);
+  const [isDragging, setIsDragging] = useState(false);
+  
+  const handleDragEnd = (_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+    setIsDragging(false);
+    const threshold = 100;
+    
+    if (info.offset.x > threshold && onPrevious) {
+      onPrevious();
+    } else if (info.offset.x < -threshold && onNext) {
+      onNext();
+    }
+  };
   const metadata = photo.metadata;
 
   return (
@@ -58,18 +72,45 @@ export function PreviewDrawer({
         </div>
       </div>
 
-      {/* Image Preview */}
-      <div className="relative bg-muted flex-shrink-0" style={{ height: '400px' }}>
-        {photo.url ? (
-          <img
-            src={photo.url}
-            alt={photo.name}
-            className="w-full h-full object-contain"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-            No preview available
-          </div>
+      {/* Image Preview with Swipe Gesture */}
+      <div className="relative bg-muted flex-shrink-0 overflow-hidden" style={{ height: '400px' }}>
+        <motion.div
+          drag="x"
+          dragConstraints={{ left: 0, right: 0 }}
+          dragElastic={0.2}
+          onDragStart={() => setIsDragging(true)}
+          onDragEnd={handleDragEnd}
+          style={{ x }}
+          className={`w-full h-full ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+        >
+          {photo.url ? (
+            <img
+              src={photo.url}
+              alt={photo.name}
+              className="w-full h-full object-contain select-none pointer-events-none"
+              draggable={false}
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+              No preview available
+            </div>
+          )}
+        </motion.div>
+        
+        {/* Swipe Indicators */}
+        {isDragging && (
+          <>
+            {onPrevious && (
+              <div className="absolute left-8 top-1/2 -translate-y-1/2 opacity-50 pointer-events-none">
+                <ChevronLeft className="w-16 h-16 text-primary" />
+              </div>
+            )}
+            {onNext && (
+              <div className="absolute right-8 top-1/2 -translate-y-1/2 opacity-50 pointer-events-none">
+                <ChevronRight className="w-16 h-16 text-primary" />
+              </div>
+            )}
+          </>
         )}
       </div>
 

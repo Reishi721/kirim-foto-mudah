@@ -9,6 +9,7 @@ import { Loader2, Download, MapPin, Navigation } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { motion } from 'framer-motion';
+import { useMapClustering } from '@/hooks/useMapClustering';
 
 interface PhotoLocation {
   id: string;
@@ -35,6 +36,7 @@ export default function MapPage() {
   const [selectedMarker, setSelectedMarker] = useState<string | null>(null);
   const [center, setCenter] = useState<[number, number]>([-6.2088, 106.8456]);
   const [zoom, setZoom] = useState(13);
+  const [bounds, setBounds] = useState<any>();
 
   useEffect(() => {
     loadMapData();
@@ -128,6 +130,8 @@ export default function MapPage() {
     if (selectedDate !== 'all' && loc.uploadRecord.tanggal !== selectedDate) return false;
     return true;
   });
+
+  const { clusters } = useMapClustering(filteredLocations, zoom, bounds);
 
   const exportToGeoJSON = () => {
     const geoJSON = {
@@ -275,19 +279,47 @@ export default function MapPage() {
               <Map
                 center={center}
                 zoom={zoom}
-                onBoundsChanged={({ center: newCenter, zoom: newZoom }) => {
+                onBoundsChanged={({ center: newCenter, zoom: newZoom, bounds: newBounds }) => {
                   setCenter(newCenter);
                   setZoom(newZoom);
+                  setBounds(newBounds);
                 }}
               >
-                {filteredLocations.map(loc => (
-                  <Marker
-                    key={loc.id}
-                    anchor={[loc.latitude, loc.longitude]}
-                    color="#ef4444"
-                    onClick={() => setSelectedMarker(selectedMarker === loc.id ? null : loc.id)}
-                  />
-                ))}
+                {clusters.map((cluster) => {
+                  const [lng, lat] = cluster.geometry.coordinates;
+                  const { cluster: isCluster, point_count } = cluster.properties;
+
+                  if (isCluster) {
+                    return (
+                      <Marker
+                        key={`cluster-${cluster.id}`}
+                        anchor={[lat, lng]}
+                        color="#3b82f6"
+                        width={40}
+                        height={40}
+                        onClick={() => {
+                          const expansionZoom = Math.min(16, zoom + 2);
+                          setCenter([lat, lng]);
+                          setZoom(expansionZoom);
+                        }}
+                      >
+                        <div className="bg-primary text-primary-foreground rounded-full w-10 h-10 flex items-center justify-center font-bold text-sm shadow-lg border-2 border-white">
+                          {point_count}
+                        </div>
+                      </Marker>
+                    );
+                  }
+
+                  const location = cluster.properties as PhotoLocation;
+                  return (
+                    <Marker
+                      key={location.id}
+                      anchor={[lat, lng]}
+                      color="#ef4444"
+                      onClick={() => setSelectedMarker(selectedMarker === location.id ? null : location.id)}
+                    />
+                  );
+                })}
               </Map>
 
               {selectedMarker && (() => {
