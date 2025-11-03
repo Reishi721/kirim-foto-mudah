@@ -101,6 +101,7 @@ export type Database = {
         Row: {
           archived_at: string | null
           created_at: string | null
+          customer_name: string | null
           description: string | null
           file_count: number | null
           folder_path: string
@@ -124,6 +125,7 @@ export type Database = {
         Insert: {
           archived_at?: string | null
           created_at?: string | null
+          customer_name?: string | null
           description?: string | null
           file_count?: number | null
           folder_path: string
@@ -147,6 +149,7 @@ export type Database = {
         Update: {
           archived_at?: string | null
           created_at?: string | null
+          customer_name?: string | null
           description?: string | null
           file_count?: number | null
           folder_path?: string

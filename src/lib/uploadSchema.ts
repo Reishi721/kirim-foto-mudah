@@ -6,6 +6,7 @@ export const UploadFormSchema = z.object({
   noSuratJalan: z.string().min(1, "Document Number is required"),
   tanggal: z.date({ required_error: "Tanggal is required" }),
   tipe: z.enum(["Pengiriman", "Pengembalian"], { required_error: "Please select a type" }),
+  customerName: z.string().min(1, "Customer Name is required"),
   supir: z.enum(DRIVERS, { required_error: "Please select a driver" }),
   helper1: z.string().optional(),
   helper2: z.string().optional(),

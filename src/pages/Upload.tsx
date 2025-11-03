@@ -38,6 +38,7 @@ export default function Upload() {
     defaultValues: {
       tipe: 'Pengiriman',
       noSuratJalan: '',
+      customerName: '',
       helper1: '',
       helper2: '',
       description: '',
@@ -210,6 +211,7 @@ export default function Upload() {
           no_surat_jalan: data.noSuratJalan,
           tanggal: formatDateISO(data.tanggal),
           tipe: data.tipe,
+          customer_name: data.customerName,
           supir: data.supir,
           helper1: data.helper1 || '—',
           helper2: data.helper2 || '—',
@@ -409,6 +411,29 @@ export default function Upload() {
                               <SelectItem value="Pengembalian">Pengembalian</SelectItem>
                             </SelectContent>
                           </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    {/* Customer Name */}
+                    <FormField
+                      control={form.control}
+                      name="customerName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-base">Customer Name *</FormLabel>
+                          <FormControl>
+                            <Input 
+                              placeholder="e.g. PT. ABC Company" 
+                              className="h-11"
+                              {...field} 
+                              disabled={isUploading} 
+                            />
+                          </FormControl>
+                          <FormDescription className="text-xs">
+                            Enter the customer or company name
+                          </FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
