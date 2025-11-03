@@ -36,7 +36,7 @@ interface Geofence {
   radiusMeters: number;
 }
 
-// Component to fit map bounds
+// Component to fit map bounds - wrapped in Fragment for React 18 compatibility
 function MapBounds({ locations }: { locations: PhotoLocation[] }) {
   const map = useMap();
   
@@ -48,6 +48,71 @@ function MapBounds({ locations }: { locations: PhotoLocation[] }) {
   }, [locations, map]);
   
   return null;
+}
+
+// Map content component to ensure proper React 18 context handling
+function MapContent({ locations, geofences, routeCoordinates }: {
+  locations: PhotoLocation[];
+  geofences: Geofence[];
+  routeCoordinates: LatLngExpression[];
+}) {
+  return (
+    <>
+      <TileLayer
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+      />
+
+      <MapBounds locations={locations} />
+
+      {/* Geofences */}
+      {geofences.map(fence => (
+        <Circle
+          key={fence.id}
+          center={[fence.centerLatitude, fence.centerLongitude] as LatLngExpression}
+          radius={fence.radiusMeters}
+          pathOptions={{ color: 'blue', fillColor: 'blue', fillOpacity: 0.1 }}
+        >
+          <Popup>
+            <strong>{fence.name}</strong>
+            <br />
+            Radius: {fence.radiusMeters}m
+          </Popup>
+        </Circle>
+      ))}
+
+      {/* Route polyline */}
+      {routeCoordinates.length > 1 && (
+        <Polyline
+          positions={routeCoordinates}
+          pathOptions={{ color: 'hsl(205, 100%, 64%)', weight: 3 }}
+        />
+      )}
+
+      {/* Location markers */}
+      {locations.map(loc => (
+        <Marker
+          key={loc.id}
+          position={[loc.latitude, loc.longitude]}
+        >
+          <Popup>
+            <div className="space-y-1">
+              <p className="font-semibold">{loc.fileName}</p>
+              <p className="text-sm">Doc: {loc.uploadRecord.no_surat_jalan}</p>
+              <p className="text-sm">Driver: {loc.uploadRecord.supir}</p>
+              <p className="text-sm">Type: {loc.uploadRecord.tipe}</p>
+              <p className="text-sm">Date: {format(new Date(loc.uploadRecord.tanggal), 'PPP')}</p>
+              {loc.capturedAt && (
+                <p className="text-xs text-muted-foreground">
+                  Captured: {format(new Date(loc.capturedAt), 'PPp')}
+                </p>
+              )}
+            </div>
+          </Popup>
+        </Marker>
+      ))}
+    </>
+  );
 }
 
 export default function Map() {
@@ -330,59 +395,11 @@ export default function Map() {
               style={{ height: '100%', width: '100%' } as React.CSSProperties}
               scrollWheelZoom={true}
             >
-              <TileLayer
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+              <MapContent 
+                locations={filteredLocations} 
+                geofences={geofences}
+                routeCoordinates={routeCoordinates}
               />
-
-              <MapBounds locations={filteredLocations} />
-
-              {/* Geofences */}
-              {geofences.map(fence => (
-                <Circle
-                  key={fence.id}
-                  center={[fence.centerLatitude, fence.centerLongitude] as LatLngExpression}
-                  radius={fence.radiusMeters}
-                  pathOptions={{ color: 'blue', fillColor: 'blue', fillOpacity: 0.1 }}
-                >
-                  <Popup>
-                    <strong>{fence.name}</strong>
-                    <br />
-                    Radius: {fence.radiusMeters}m
-                  </Popup>
-                </Circle>
-              ))}
-
-              {/* Route polyline */}
-              {routeCoordinates.length > 1 && (
-                <Polyline
-                  positions={routeCoordinates}
-                  pathOptions={{ color: 'hsl(205, 100%, 64%)', weight: 3 }}
-                />
-              )}
-
-              {/* Location markers */}
-              {filteredLocations.map(loc => (
-                <Marker
-                  key={loc.id}
-                  position={[loc.latitude, loc.longitude]}
-                >
-                  <Popup>
-                    <div className="space-y-1">
-                      <p className="font-semibold">{loc.fileName}</p>
-                      <p className="text-sm">Doc: {loc.uploadRecord.no_surat_jalan}</p>
-                      <p className="text-sm">Driver: {loc.uploadRecord.supir}</p>
-                      <p className="text-sm">Type: {loc.uploadRecord.tipe}</p>
-                      <p className="text-sm">Date: {format(new Date(loc.uploadRecord.tanggal), 'PPP')}</p>
-                      {loc.capturedAt && (
-                        <p className="text-xs text-muted-foreground">
-                          Captured: {format(new Date(loc.capturedAt), 'PPp')}
-                        </p>
-                      )}
-                    </div>
-                  </Popup>
-                </Marker>
-              ))}
             </MapContainer>
           )}
         </Card>
