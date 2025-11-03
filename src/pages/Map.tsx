@@ -72,7 +72,7 @@ export default function Map() {
   const loadMapData = async () => {
     setIsLoading(true);
     try {
-      // Load photo locations with metadata
+      // Load photo locations with metadata (from EXIF data)
       const { data: photos, error: photosError } = await supabase
         .from('photo_metadata')
         .select(`
@@ -94,7 +94,7 @@ export default function Map() {
 
       if (photosError) throw photosError;
 
-      const formattedLocations: PhotoLocation[] = (photos || []).map((photo: any) => ({
+      let formattedLocations: PhotoLocation[] = (photos || []).map((photo: any) => ({
         id: photo.id,
         latitude: parseFloat(photo.latitude),
         longitude: parseFloat(photo.longitude),
@@ -102,6 +102,34 @@ export default function Map() {
         capturedAt: photo.captured_at,
         uploadRecord: photo.upload_record
       }));
+
+      // Also load upload records with GPS (from device location)
+      const { data: uploads, error: uploadsError } = await supabase
+        .from('upload_records')
+        .select('*')
+        .not('latitude', 'is', null)
+        .not('longitude', 'is', null)
+        .order('created_at', { ascending: false });
+
+      if (uploadsError) throw uploadsError;
+
+      // Add upload record locations to the map
+      const uploadLocations: PhotoLocation[] = (uploads || []).map((upload: any) => ({
+        id: upload.id,
+        latitude: parseFloat(upload.latitude),
+        longitude: parseFloat(upload.longitude),
+        fileName: `Upload: ${upload.no_surat_jalan}`,
+        capturedAt: upload.location_captured_at || upload.created_at,
+        uploadRecord: {
+          no_surat_jalan: upload.no_surat_jalan,
+          supir: upload.supir,
+          tipe: upload.tipe,
+          tanggal: upload.tanggal
+        }
+      }));
+
+      // Combine both sources
+      formattedLocations = [...formattedLocations, ...uploadLocations];
 
       setLocations(formattedLocations);
 
