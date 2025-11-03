@@ -28,6 +28,7 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
+import { RetentionPolicies } from '@/components/admin/RetentionPolicies';
 
 interface User {
   id: string;
@@ -458,6 +459,15 @@ export default function Admin() {
                 </div>
               )}
             </Card>
+          </motion.div>
+
+          {/* Retention Policies */}
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.36, duration: 0.3 }}
+          >
+            <RetentionPolicies />
           </motion.div>
         </div>
 

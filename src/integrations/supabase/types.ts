@@ -54,6 +54,7 @@ export type Database = {
           captured_at: string | null
           created_at: string
           exif_data: Json | null
+          file_hash: string | null
           file_name: string
           id: string
           latitude: number | null
@@ -66,6 +67,7 @@ export type Database = {
           captured_at?: string | null
           created_at?: string
           exif_data?: Json | null
+          file_hash?: string | null
           file_name: string
           id?: string
           latitude?: number | null
@@ -78,6 +80,7 @@ export type Database = {
           captured_at?: string | null
           created_at?: string
           exif_data?: Json | null
+          file_hash?: string | null
           file_name?: string
           id?: string
           latitude?: number | null
@@ -96,6 +99,7 @@ export type Database = {
       }
       upload_records: {
         Row: {
+          archived_at: string | null
           created_at: string | null
           description: string | null
           file_count: number | null
@@ -103,18 +107,22 @@ export type Database = {
           helper1: string | null
           helper2: string | null
           id: string
+          is_archived: boolean | null
           latitude: number | null
           location_accuracy: number | null
           location_captured_at: string | null
           longitude: number | null
           no_surat_jalan: string
+          parent_version_id: string | null
           supir: string
           tanggal: string
           tipe: string
           updated_at: string | null
           user_id: string | null
+          version: number | null
         }
         Insert: {
+          archived_at?: string | null
           created_at?: string | null
           description?: string | null
           file_count?: number | null
@@ -122,18 +130,22 @@ export type Database = {
           helper1?: string | null
           helper2?: string | null
           id?: string
+          is_archived?: boolean | null
           latitude?: number | null
           location_accuracy?: number | null
           location_captured_at?: string | null
           longitude?: number | null
           no_surat_jalan: string
+          parent_version_id?: string | null
           supir: string
           tanggal: string
           tipe?: string
           updated_at?: string | null
           user_id?: string | null
+          version?: number | null
         }
         Update: {
+          archived_at?: string | null
           created_at?: string | null
           description?: string | null
           file_count?: number | null
@@ -141,18 +153,29 @@ export type Database = {
           helper1?: string | null
           helper2?: string | null
           id?: string
+          is_archived?: boolean | null
           latitude?: number | null
           location_accuracy?: number | null
           location_captured_at?: string | null
           longitude?: number | null
           no_surat_jalan?: string
+          parent_version_id?: string | null
           supir?: string
           tanggal?: string
           tipe?: string
           updated_at?: string | null
           user_id?: string | null
+          version?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "upload_records_parent_version_id_fkey"
+            columns: ["parent_version_id"]
+            isOneToOne: false
+            referencedRelation: "upload_records"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {

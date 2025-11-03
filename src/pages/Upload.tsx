@@ -13,9 +13,11 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { FileUploadZone } from '@/components/upload/FileUploadZone';
 import { UploadProgress } from '@/components/upload/UploadProgress';
+import { DuplicateWarning } from '@/components/upload/DuplicateWarning';
 import { UploadFormSchema, UploadFormData, FileWithProgress, DRIVERS } from '@/lib/uploadSchema';
 import { buildUploadPath, formatDateISO } from '@/lib/pathBuilder';
 import { extractGPSFromImage, getDeviceLocation } from '@/lib/gpsExtractor';
+import { generateFileHash, checkForDuplicates, convertHeicToJpeg, isHeicFile, type DuplicateInfo } from '@/lib/fileQuality';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -28,6 +30,8 @@ export default function Upload() {
   const [files, setFiles] = useState<FileWithProgress[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadedPath, setUploadedPath] = useState<string>('');
+  const [duplicates, setDuplicates] = useState<Map<string, DuplicateInfo>>(new Map());
+  const [heicConversions, setHeicConversions] = useState<Set<string>>(new Set());
 
   const form = useForm<UploadFormData>({
     resolver: zodResolver(UploadFormSchema),
@@ -40,13 +44,52 @@ export default function Upload() {
     },
   });
 
-  const handleFilesAdded = (newFiles: FileWithProgress[]) => {
+  const handleFilesAdded = async (newFiles: FileWithProgress[]) => {
+    // Process HEIC conversions and duplicate detection
+    const processedFiles = await Promise.all(
+      newFiles.map(async (fileItem) => {
+        let processedFile = fileItem;
+        
+        // HEIC conversion
+        if (isHeicFile(fileItem.file)) {
+          try {
+            toast.info(`Converting ${fileItem.file.name} from HEIC to JPEG...`);
+            const convertedFile = await convertHeicToJpeg(fileItem.file);
+            processedFile = {
+              ...fileItem,
+              file: convertedFile,
+              preview: URL.createObjectURL(convertedFile)
+            };
+            setHeicConversions(prev => new Set(prev).add(fileItem.id));
+            toast.success(`${fileItem.file.name} converted successfully`);
+          } catch (error) {
+            toast.error(`Failed to convert ${fileItem.file.name}`);
+            console.error('HEIC conversion error:', error);
+          }
+        }
+
+        // Duplicate detection
+        try {
+          const fileHash = await generateFileHash(processedFile.file);
+          const duplicateInfo = await checkForDuplicates(fileHash, processedFile.file.name, supabase);
+          
+          if (duplicateInfo.isDuplicate) {
+            setDuplicates(prev => new Map(prev).set(processedFile.id, duplicateInfo));
+          }
+        } catch (error) {
+          console.error('Duplicate detection error:', error);
+        }
+
+        return processedFile;
+      })
+    );
+
     setFiles((prev) => {
       const existingIds = new Set(prev.map((f) => f.id));
-      const uniqueNewFiles = newFiles.filter((f) => !existingIds.has(f.id));
+      const uniqueNewFiles = processedFiles.filter((f) => !existingIds.has(f.id));
       
       const updated = prev.map((existing) => {
-        const match = newFiles.find((n) => n.id === existing.id);
+        const match = processedFiles.find((n) => n.id === existing.id);
         return match || existing;
       });
       
@@ -56,6 +99,16 @@ export default function Upload() {
 
   const handleFileRemoved = (fileId: string) => {
     setFiles((prev) => prev.filter((f) => f.id !== fileId));
+    setDuplicates(prev => {
+      const newMap = new Map(prev);
+      newMap.delete(fileId);
+      return newMap;
+    });
+    setHeicConversions(prev => {
+      const newSet = new Set(prev);
+      newSet.delete(fileId);
+      return newSet;
+    });
   };
 
   const triggerConfetti = () => {
@@ -175,18 +228,24 @@ export default function Upload() {
             description: dbError.message
           });
         } else {
-          // Insert photo metadata with GPS data
+          // Insert photo metadata with GPS data and file hashes
           if (uploadRecord) {
-            const photoMetadata = photoGPSData
-              .filter(p => p.latitude && p.longitude)
-              .map(p => ({
-                upload_record_id: uploadRecord.id,
-                file_name: p.fileName,
-                latitude: p.latitude,
-                longitude: p.longitude,
-                altitude: p.altitude,
-                captured_at: p.capturedAt?.toISOString() || null,
-              }));
+            const photoMetadata = await Promise.all(
+              photoGPSData.map(async (p) => {
+                const matchingFile = files.find(f => f.file.name === p.fileName);
+                const fileHash = matchingFile ? await generateFileHash(matchingFile.file) : null;
+                
+                return {
+                  upload_record_id: uploadRecord.id,
+                  file_name: p.fileName,
+                  latitude: p.latitude,
+                  longitude: p.longitude,
+                  altitude: p.altitude,
+                  captured_at: p.capturedAt?.toISOString() || null,
+                  file_hash: fileHash
+                };
+              })
+            );
 
             if (photoMetadata.length > 0) {
               await supabase.from('photo_metadata').insert(photoMetadata);
@@ -456,6 +515,29 @@ export default function Upload() {
               >
                 <Card className="p-6 md:p-8">
                   <h2 className="font-semibold mb-6">Upload Pictures *</h2>
+                  
+                  {/* Duplicate Warnings */}
+                  {Array.from(duplicates.entries()).map(([fileId, duplicateInfo]) => {
+                    const file = files.find(f => f.id === fileId);
+                    if (!file) return null;
+                    
+                    return (
+                      <DuplicateWarning
+                        key={fileId}
+                        fileName={file.file.name}
+                        duplicateInfo={duplicateInfo}
+                        onDismiss={() => handleFileRemoved(fileId)}
+                        onProceed={() => {
+                          setDuplicates(prev => {
+                            const newMap = new Map(prev);
+                            newMap.delete(fileId);
+                            return newMap;
+                          });
+                        }}
+                      />
+                    );
+                  })}
+                  
                   <FileUploadZone
                     files={files}
                     onFilesAdded={handleFilesAdded}
