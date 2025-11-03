@@ -31,6 +31,10 @@ function TreeNode({ node, level, onNodeClick, selectedPath }: TreeNodeProps) {
   };
 
   const handleClick = () => {
+    // Auto-expand when clicked if it has children
+    if (hasChildren && !isExpanded) {
+      setIsExpanded(true);
+    }
     onNodeClick?.(node);
   };
 
