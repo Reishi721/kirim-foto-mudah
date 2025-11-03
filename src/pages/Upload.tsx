@@ -15,6 +15,7 @@ import { FileUploadZone } from '@/components/upload/FileUploadZone';
 import { UploadProgress } from '@/components/upload/UploadProgress';
 import { UploadFormSchema, UploadFormData, FileWithProgress, DRIVERS } from '@/lib/uploadSchema';
 import { buildUploadPath, formatDateISO } from '@/lib/pathBuilder';
+import { extractGPSFromImage, getDeviceLocation } from '@/lib/gpsExtractor';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -95,12 +96,26 @@ export default function Upload() {
     try {
       let successCount = 0;
       let failCount = 0;
+      const photoGPSData: Array<{ fileName: string; latitude: number | null; longitude: number | null; altitude: number | null; capturedAt: Date | null }> = [];
 
-      // Upload each file
+      // Get device location as fallback
+      const deviceLocation = await getDeviceLocation();
+
+      // Upload each file and extract GPS
       for (const fileItem of files) {
         setFiles((prev) =>
           prev.map((f) => (f.id === fileItem.id ? { ...f, status: 'uploading' } : f))
         );
+
+        // Extract GPS from image
+        const gpsData = await extractGPSFromImage(fileItem.file);
+        photoGPSData.push({
+          fileName: fileItem.file.name,
+          latitude: gpsData.latitude,
+          longitude: gpsData.longitude,
+          altitude: gpsData.altitude,
+          capturedAt: gpsData.capturedAt
+        });
 
         const fileToUpload = fileItem.compressedFile || fileItem.file;
         const filePath = `${folderPath}/${fileItem.file.name}`;
@@ -133,7 +148,12 @@ export default function Upload() {
       if (successCount > 0) {
         const { data: user } = await supabase.auth.getUser();
         
-        const { error: dbError } = await supabase.from('upload_records').insert({
+        // Determine upload location (use first photo with GPS, or device location)
+        const firstGPSPhoto = photoGPSData.find(p => p.latitude && p.longitude);
+        const uploadLat = firstGPSPhoto?.latitude || deviceLocation?.latitude || null;
+        const uploadLon = firstGPSPhoto?.longitude || deviceLocation?.longitude || null;
+        
+        const { data: uploadRecord, error: dbError } = await supabase.from('upload_records').insert({
           no_surat_jalan: data.noSuratJalan,
           tanggal: formatDateISO(data.tanggal),
           tipe: data.tipe,
@@ -144,13 +164,35 @@ export default function Upload() {
           folder_path: folderPath,
           file_count: successCount,
           user_id: user.user?.id,
-        });
+          latitude: uploadLat,
+          longitude: uploadLon,
+          location_accuracy: deviceLocation?.accuracy || null,
+          location_captured_at: new Date().toISOString(),
+        }).select().single();
 
         if (dbError) {
           toast.error('Failed to save metadata', {
             description: dbError.message
           });
         } else {
+          // Insert photo metadata with GPS data
+          if (uploadRecord) {
+            const photoMetadata = photoGPSData
+              .filter(p => p.latitude && p.longitude)
+              .map(p => ({
+                upload_record_id: uploadRecord.id,
+                file_name: p.fileName,
+                latitude: p.latitude,
+                longitude: p.longitude,
+                altitude: p.altitude,
+                captured_at: p.capturedAt?.toISOString() || null,
+              }));
+
+            if (photoMetadata.length > 0) {
+              await supabase.from('photo_metadata').insert(photoMetadata);
+            }
+          }
+
           setUploadedPath(folderPath);
           triggerConfetti();
           

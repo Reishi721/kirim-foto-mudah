@@ -11,6 +11,7 @@ import Upload from "./pages/Upload";
 import Browse from "./pages/Browse";
 import Login from "./pages/Login";
 import Admin from "./pages/Admin";
+import Map from "./pages/Map";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -81,6 +82,14 @@ const App = () => (
             element={
               <ProtectedRoute showNav={false}>
                 <Admin />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/map"
+            element={
+              <ProtectedRoute showNav={true}>
+                <Map />
               </ProtectedRoute>
             }
           />

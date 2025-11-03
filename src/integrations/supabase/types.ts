@@ -14,6 +14,86 @@ export type Database = {
   }
   public: {
     Tables: {
+      geofence_config: {
+        Row: {
+          center_latitude: number
+          center_longitude: number
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          radius_meters: number
+          updated_at: string
+        }
+        Insert: {
+          center_latitude: number
+          center_longitude: number
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          radius_meters: number
+          updated_at?: string
+        }
+        Update: {
+          center_latitude?: number
+          center_longitude?: number
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          radius_meters?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      photo_metadata: {
+        Row: {
+          altitude: number | null
+          bearing: number | null
+          captured_at: string | null
+          created_at: string
+          exif_data: Json | null
+          file_name: string
+          id: string
+          latitude: number | null
+          longitude: number | null
+          upload_record_id: string
+        }
+        Insert: {
+          altitude?: number | null
+          bearing?: number | null
+          captured_at?: string | null
+          created_at?: string
+          exif_data?: Json | null
+          file_name: string
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          upload_record_id: string
+        }
+        Update: {
+          altitude?: number | null
+          bearing?: number | null
+          captured_at?: string | null
+          created_at?: string
+          exif_data?: Json | null
+          file_name?: string
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          upload_record_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "photo_metadata_upload_record_id_fkey"
+            columns: ["upload_record_id"]
+            isOneToOne: false
+            referencedRelation: "upload_records"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       upload_records: {
         Row: {
           created_at: string | null
@@ -23,6 +103,10 @@ export type Database = {
           helper1: string | null
           helper2: string | null
           id: string
+          latitude: number | null
+          location_accuracy: number | null
+          location_captured_at: string | null
+          longitude: number | null
           no_surat_jalan: string
           supir: string
           tanggal: string
@@ -38,6 +122,10 @@ export type Database = {
           helper1?: string | null
           helper2?: string | null
           id?: string
+          latitude?: number | null
+          location_accuracy?: number | null
+          location_captured_at?: string | null
+          longitude?: number | null
           no_surat_jalan: string
           supir: string
           tanggal: string
@@ -53,6 +141,10 @@ export type Database = {
           helper1?: string | null
           helper2?: string | null
           id?: string
+          latitude?: number | null
+          location_accuracy?: number | null
+          location_captured_at?: string | null
+          longitude?: number | null
           no_surat_jalan?: string
           supir?: string
           tanggal?: string

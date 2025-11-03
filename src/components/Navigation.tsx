@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Upload, FolderOpen, LogOut, Truck, Home } from 'lucide-react';
+import { Upload, FolderOpen, LogOut, Truck, Home, Map } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -54,6 +54,16 @@ export function Navigation() {
                 >
                   <FolderOpen className="w-4 h-4" />
                   Browse
+                </Button>
+              </Link>
+              <Link to="/map">
+                <Button
+                  variant={location.pathname === '/map' ? 'default' : 'ghost'}
+                  size="sm"
+                  className="gap-2"
+                >
+                  <Map className="w-4 h-4" />
+                  Map
                 </Button>
               </Link>
             </div>
