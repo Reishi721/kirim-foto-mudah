@@ -1,8 +1,9 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Upload, FolderOpen, LogOut, Truck, Home, Map } from 'lucide-react';
+import { Upload, FolderOpen, LogOut, Home, Map } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import victoryLogo from '@/assets/victory-logo.png';
 
 export function Navigation() {
   const location = useLocation();
@@ -19,10 +20,8 @@ export function Navigation() {
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center gap-8">
             <button onClick={() => navigate('/')} className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                <Truck className="w-6 h-6 text-primary" />
-              </div>
-              <span className="font-semibold text-lg text-foreground">Documenting File System</span>
+              <img src={victoryLogo} alt="Victory Logo" className="h-10 w-auto" />
+              <span className="font-semibold text-lg text-foreground">Victory Documenting</span>
             </button>
 
             <div className="flex items-center gap-2">
