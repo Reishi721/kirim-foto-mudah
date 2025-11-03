@@ -1,15 +1,18 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Map, Marker } from 'pigeon-maps';
 import { supabase } from '@/integrations/supabase/client';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Download, MapPin, Navigation } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { Loader2, Download, MapPin, Navigation, Flame } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { motion } from 'framer-motion';
 import { useMapClustering } from '@/hooks/useMapClustering';
+import { HeatmapLayer } from '@/components/map/HeatmapLayer';
 
 interface PhotoLocation {
   id: string;
@@ -37,6 +40,7 @@ export default function MapPage() {
   const [center, setCenter] = useState<[number, number]>([-6.2088, 106.8456]);
   const [zoom, setZoom] = useState(13);
   const [bounds, setBounds] = useState<any>();
+  const [showHeatmap, setShowHeatmap] = useState(false);
 
   useEffect(() => {
     loadMapData();
@@ -248,6 +252,16 @@ export default function MapPage() {
               </SelectContent>
             </Select>
 
+            <div className="flex items-center gap-2 px-4 py-2 border rounded-md bg-card">
+              <Flame className="h-4 w-4 text-orange-500" />
+              <Label htmlFor="heatmap-toggle" className="cursor-pointer">Heatmap</Label>
+              <Switch
+                id="heatmap-toggle"
+                checked={showHeatmap}
+                onCheckedChange={setShowHeatmap}
+              />
+            </div>
+
             <Button onClick={exportToGeoJSON} variant="outline" className="hover-lift">
               <Download className="mr-2 h-4 w-4" />
               Export GeoJSON
@@ -278,6 +292,7 @@ export default function MapPage() {
             </div>
           ) : (
             <div className="relative h-full w-full">
+              {showHeatmap && <HeatmapLayer locations={filteredLocations} zoom={zoom} />}
               <Map
                 center={center}
                 zoom={zoom}

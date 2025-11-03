@@ -20,7 +20,14 @@ interface GetUsersRequest {
   action: 'get_users';
 }
 
-type AdminRequest = DeletePhotoRequest | DeleteUserRequest | GetUsersRequest;
+interface CreateUserRequest {
+  action: 'create_user';
+  email: string;
+  password: string;
+  role: 'admin' | 'moderator' | 'user';
+}
+
+type AdminRequest = DeletePhotoRequest | DeleteUserRequest | GetUsersRequest | CreateUserRequest;
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -242,6 +249,54 @@ Deno.serve(async (req) => {
 
         return new Response(
           JSON.stringify({ success: true }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      case 'create_user': {
+        const { email, password, role } = requestBody;
+        console.log('Creating user:', email, 'with role:', role);
+
+        // Create user via admin API
+        const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
+          email,
+          password,
+          email_confirm: true // Auto-confirm email
+        });
+
+        if (createError) {
+          console.error('Error creating user:', createError);
+          throw createError;
+        }
+
+        console.log('User created:', newUser.user.id);
+
+        // Assign role to the user
+        const { error: roleError } = await supabaseAdmin
+          .from('user_roles')
+          .insert({
+            user_id: newUser.user.id,
+            role: role
+          });
+
+        if (roleError) {
+          console.error('Error assigning role:', roleError);
+          // Try to clean up the created user
+          await supabaseAdmin.auth.admin.deleteUser(newUser.user.id);
+          throw roleError;
+        }
+
+        console.log('Role assigned successfully');
+
+        return new Response(
+          JSON.stringify({ 
+            success: true, 
+            user: {
+              id: newUser.user.id,
+              email: newUser.user.email,
+              role: role
+            }
+          }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }

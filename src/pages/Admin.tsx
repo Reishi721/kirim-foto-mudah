@@ -29,6 +29,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { RetentionPolicies } from '@/components/admin/RetentionPolicies';
+import { UserManagement } from '@/components/admin/UserManagement';
 
 interface User {
   id: string;
@@ -276,17 +277,20 @@ export default function Admin() {
             transition={{ delay: 0.12, duration: 0.3 }}
           >
             <Card className="p-6 hover-lift">
-              <div className="flex items-center gap-3 mb-6">
-                <Users className="h-5 w-5 text-primary" />
-                <h2 className="font-semibold">Users ({users.length})</h2>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Info className="h-4 w-4 text-muted-foreground cursor-help" />
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Manage user accounts and permissions</p>
-                  </TooltipContent>
-                </Tooltip>
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <Users className="h-5 w-5 text-primary" />
+                  <h2 className="font-semibold">Users ({users.length})</h2>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info className="h-4 w-4 text-muted-foreground cursor-help" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Manage user accounts and permissions</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
+                <UserManagement onUserCreated={loadData} />
               </div>
 
               {users.length === 0 ? (
