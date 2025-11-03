@@ -1,6 +1,5 @@
-import { Search, Moon, Sun, User, LogOut } from 'lucide-react';
+import { Moon, Sun, User, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -56,17 +55,7 @@ export function DashboardHeader() {
           <span className="hidden font-semibold text-lg sm:inline-block">Surat Jalan</span>
         </div>
 
-        {/* Search */}
-        <div className="flex-1 max-w-md">
-          <div className="relative">
-            <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="search"
-              placeholder="Search by No. SJ, driver..."
-              className="pl-9 w-full bg-background/50 backdrop-blur-sm border-border/50 focus-ring"
-            />
-          </div>
-        </div>
+        <div className="flex-1" />
 
         {/* Actions */}
         <div className="flex items-center gap-2">
