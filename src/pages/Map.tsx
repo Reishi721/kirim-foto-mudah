@@ -285,10 +285,15 @@ export default function MapPage() {
       <div className="container mx-auto px-4 pb-8">
         <Card className="p-0 overflow-hidden" style={{ height: '70vh' }}>
           {locations.length === 0 ? (
-            <div className="h-full flex flex-col items-center justify-center text-muted-foreground">
-              <MapPin className="h-16 w-16 mb-4 opacity-50" />
-              <p>No GPS data available</p>
-              <p className="text-sm">Upload photos with GPS coordinates to see them here</p>
+            <div className="h-full flex flex-col items-center justify-center text-center px-4">
+              <MapPin className="h-20 w-20 mb-4 text-muted-foreground/30" />
+              <h3 className="text-lg font-semibold mb-2">No GPS Data Available</h3>
+              <p className="text-muted-foreground mb-4 max-w-md">
+                Upload photos with GPS coordinates to visualize routes and locations on this map
+              </p>
+              <Button onClick={() => window.location.href = '/upload'} variant="outline">
+                Upload Photos with GPS
+              </Button>
             </div>
           ) : (
             <div className="relative h-full w-full">

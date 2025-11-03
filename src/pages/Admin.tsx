@@ -294,9 +294,11 @@ export default function Admin() {
               </div>
 
               {users.length === 0 ? (
-                <div className="text-center py-12">
-                  <Users className="h-12 w-12 text-muted-foreground/50 mx-auto mb-3" />
-                  <p className="text-muted-foreground">No users found</p>
+                <div className="text-center py-16">
+                  <Users className="h-16 w-16 text-muted-foreground/30 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">No Users Yet</h3>
+                  <p className="text-muted-foreground mb-4">Create your first user account to get started</p>
+                  <UserManagement onUserCreated={loadData} />
                 </div>
               ) : (
                 <div className="overflow-x-auto">
@@ -384,9 +386,13 @@ export default function Admin() {
               </div>
 
               {records.length === 0 ? (
-                <div className="text-center py-12">
-                  <ImageOff className="h-12 w-12 text-muted-foreground/50 mx-auto mb-3" />
-                  <p className="text-muted-foreground">No upload records found</p>
+                <div className="text-center py-16">
+                  <ImageOff className="h-16 w-16 text-muted-foreground/30 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">No Upload Records</h3>
+                  <p className="text-muted-foreground mb-4">Users' uploaded photos will appear here once they start uploading</p>
+                  <Button onClick={() => navigate('/upload')} variant="outline">
+                    Go to Upload
+                  </Button>
                 </div>
               ) : (
                 <div className="space-y-6">
@@ -413,7 +419,7 @@ export default function Admin() {
                       </div>
 
                       {photos[record.id] && photos[record.id].length > 0 ? (
-                        <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-3">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
                           {photos[record.id].map((photo) => (
                             <motion.div
                               key={photo.id}

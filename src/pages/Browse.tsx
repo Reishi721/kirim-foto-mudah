@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Grid3x3, List, Loader2, PanelLeftClose, PanelLeft, ChevronLeft, FolderTree as FolderTreeIcon } from 'lucide-react';
+import { Grid3x3, List, Loader2, PanelLeftClose, PanelLeft, ChevronLeft, FolderTree as FolderTreeIcon, ImageOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
@@ -269,6 +269,16 @@ export default function Browse() {
     }));
   }, [selectedFolder]);
 
+  const activeFilterCount = useMemo(() => {
+    return (
+      (filters.search ? 1 : 0) +
+      (filters.type !== 'all' ? 1 : 0) +
+      (filters.dateFrom ? 1 : 0) +
+      (filters.dateTo ? 1 : 0) +
+      (filters.supir ? 1 : 0)
+    );
+  }, [filters]);
+
   // Helper function to find a node in the folder tree recursively
   const findNodeInTree = (nodes: FolderNode[], path: string): FolderNode | null => {
     for (const node of nodes) {
@@ -377,10 +387,10 @@ export default function Browse() {
       <div className="flex-1 flex flex-col">
         {/* Breadcrumb Navigation */}
         {breadcrumbPaths.length > 0 && (
-          <div className="px-3 sm:px-4 py-2 border-b bg-muted/30">
+          <div className="px-3 sm:px-4 py-2 border-b bg-muted/30 overflow-x-auto">
             <Breadcrumb>
-              <BreadcrumbList>
-                <BreadcrumbItem>
+              <BreadcrumbList className="flex-nowrap">
+                <BreadcrumbItem className="shrink-0">
                   <BreadcrumbLink
                     onClick={() => {
                       setSelectedFolder(null);
@@ -393,10 +403,10 @@ export default function Browse() {
                 </BreadcrumbItem>
                 {breadcrumbPaths.map((item, index) => (
                   <React.Fragment key={item.path}>
-                    <BreadcrumbSeparator />
-                    <BreadcrumbItem>
+                    <BreadcrumbSeparator className="shrink-0" />
+                    <BreadcrumbItem className="shrink-0">
                       {index === breadcrumbPaths.length - 1 ? (
-                        <BreadcrumbPage>{item.name}</BreadcrumbPage>
+                        <BreadcrumbPage className="truncate max-w-[120px] sm:max-w-none">{item.name}</BreadcrumbPage>
                       ) : (
                         <BreadcrumbLink
                           onClick={() => {
@@ -404,7 +414,7 @@ export default function Browse() {
                             setSelectedFolder(item.path);
                             setSelectedNode(node || null);
                           }}
-                          className="cursor-pointer"
+                          className="cursor-pointer truncate max-w-[120px] sm:max-w-none"
                         >
                           {item.name}
                         </BreadcrumbLink>
@@ -498,19 +508,21 @@ export default function Browse() {
               }} 
             />
           ) : selectedNode?.type !== 'nosj' ? (
-            <div className="flex items-center justify-center h-full text-center p-8">
-              <div>
-                <h3 className="text-lg font-semibold text-foreground mb-2">
-                  No subfolders found
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  This folder appears to be empty
-                </p>
-              </div>
+            <div className="flex flex-col items-center justify-center h-full text-center p-8">
+              <FolderTreeIcon className="h-16 w-16 text-muted-foreground/30 mb-4" />
+              <h3 className="text-lg font-semibold text-foreground mb-2">
+                Empty Folder
+              </h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                This folder doesn't contain any delivery records yet
+              </p>
+              <Button onClick={() => window.location.href = '/upload'} variant="outline">
+                Upload Photos
+              </Button>
             </div>
           ) : isLoadingPhotos ? (
             <div className="p-6 space-y-4">
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                 {Array.from({ length: 8 }).map((_, i) => (
                   <div key={i} className="space-y-2">
                     <Skeleton className="w-full aspect-square rounded-lg" />
@@ -519,6 +531,23 @@ export default function Browse() {
                   </div>
                 ))}
               </div>
+            </div>
+          ) : filteredPhotos.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-full text-center p-8">
+              <ImageOff className="h-16 w-16 text-muted-foreground/30 mb-4" />
+              <h3 className="text-lg font-semibold text-foreground mb-2">
+                No Photos Found
+              </h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                {filters.search || filters.type !== 'all' || filters.supir 
+                  ? 'Try adjusting your filters to see more results' 
+                  : 'This delivery record doesn\'t have any photos yet'}
+              </p>
+              {activeFilterCount > 0 && (
+                <Button onClick={handleClearFilters} variant="outline">
+                  Clear Filters
+                </Button>
+              )}
             </div>
           ) : viewMode === 'grid' ? (
             <PhotoGrid photos={filteredPhotos} onPhotoClick={handlePhotoClick} />

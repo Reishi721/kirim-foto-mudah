@@ -64,9 +64,10 @@ export function FiltersToolbar({
 
   return (
     <div className="flex flex-col gap-3 p-4 border-b bg-card">
-      <div className="flex items-center gap-2 flex-wrap">
-        {/* Search */}
-        <div className="relative flex-1 min-w-[200px]">
+      {/* Mobile: Stack all filters vertically */}
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:flex-wrap">
+        {/* Search - Full width on mobile */}
+        <div className="relative flex-1 sm:min-w-[200px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
             placeholder="Search by Document No..."
@@ -76,12 +77,12 @@ export function FiltersToolbar({
           />
         </div>
 
-        {/* Type Filter */}
+        {/* Type Filter - Full width on mobile */}
         <Select
           value={filters.type}
           onValueChange={(value) => onFiltersChange({ type: value as FilterState['type'] })}
         >
-          <SelectTrigger className="w-[180px]">
+          <SelectTrigger className="w-full sm:w-[180px]">
             <SelectValue placeholder="Type" />
           </SelectTrigger>
           <SelectContent>
@@ -91,13 +92,13 @@ export function FiltersToolbar({
           </SelectContent>
         </Select>
 
-        {/* Date Range Picker */}
+        {/* Date Range Picker - Full width on mobile */}
         <Popover open={dateRangeOpen} onOpenChange={setDateRangeOpen}>
           <PopoverTrigger asChild>
             <Button
               variant="outline"
               className={cn(
-                'w-[280px] justify-start text-left font-normal',
+                'w-full sm:w-[280px] justify-start text-left font-normal',
                 !dateRange && 'text-muted-foreground'
               )}
             >
@@ -137,12 +138,12 @@ export function FiltersToolbar({
           </PopoverContent>
         </Popover>
 
-        {/* Driver Filter */}
+        {/* Driver Filter - Full width on mobile */}
         <Select 
           value={filters.supir || 'all'} 
           onValueChange={(value) => onFiltersChange({ supir: value === 'all' ? undefined : value })}
         >
-          <SelectTrigger className="w-[180px]">
+          <SelectTrigger className="w-full sm:w-[180px]">
             <SelectValue placeholder="All Drivers" />
           </SelectTrigger>
           <SelectContent>
@@ -157,7 +158,7 @@ export function FiltersToolbar({
 
         {/* Clear Filters */}
         {activeFilterCount > 0 && (
-          <Button variant="ghost" size="sm" onClick={onClearFilters}>
+          <Button variant="outline" size="sm" onClick={onClearFilters} className="w-full sm:w-auto">
             <X className="w-4 h-4 mr-1" />
             Clear ({activeFilterCount})
           </Button>
@@ -169,7 +170,7 @@ export function FiltersToolbar({
             variant={isMapVisible ? 'default' : 'outline'}
             size="sm"
             onClick={onMapToggle}
-            className="ml-auto"
+            className="w-full sm:w-auto sm:ml-auto"
           >
             <MapIcon className="w-4 h-4 mr-1" />
             {isMapVisible ? 'Hide Map' : 'Show Map'}
