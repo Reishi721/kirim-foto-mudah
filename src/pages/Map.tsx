@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { Map, Marker } from 'pigeon-maps';
 import { supabase } from '@/integrations/supabase/client';
 import { Card } from '@/components/ui/card';
@@ -125,11 +125,13 @@ export default function MapPage() {
     }
   };
 
-  const filteredLocations = locations.filter(loc => {
-    if (selectedDriver !== 'all' && loc.uploadRecord.supir !== selectedDriver) return false;
-    if (selectedDate !== 'all' && loc.uploadRecord.tanggal !== selectedDate) return false;
-    return true;
-  });
+  const filteredLocations = useMemo(() => {
+    return locations.filter(loc => {
+      if (selectedDriver !== 'all' && loc.uploadRecord.supir !== selectedDriver) return false;
+      if (selectedDate !== 'all' && loc.uploadRecord.tanggal !== selectedDate) return false;
+      return true;
+    });
+  }, [locations, selectedDriver, selectedDate]);
 
   const { clusters } = useMapClustering(filteredLocations, zoom, bounds);
 

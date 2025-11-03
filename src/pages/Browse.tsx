@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Grid3x3, List, Loader2, PanelLeftClose, PanelLeft, ChevronLeft, FolderTree as FolderTreeIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -405,9 +405,9 @@ export default function Browse() {
                   </BreadcrumbLink>
                 </BreadcrumbItem>
                 {breadcrumbPaths.map((item, index) => (
-                  <>
-                    <BreadcrumbSeparator key={`sep-${item.path}`} />
-                    <BreadcrumbItem key={item.path}>
+                  <React.Fragment key={item.path}>
+                    <BreadcrumbSeparator />
+                    <BreadcrumbItem>
                       {index === breadcrumbPaths.length - 1 ? (
                         <BreadcrumbPage>{item.name}</BreadcrumbPage>
                       ) : (
@@ -423,7 +423,7 @@ export default function Browse() {
                         </BreadcrumbLink>
                       )}
                     </BreadcrumbItem>
-                  </>
+                  </React.Fragment>
                 ))}
               </BreadcrumbList>
             </Breadcrumb>
