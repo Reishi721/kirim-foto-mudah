@@ -16,6 +16,7 @@ export interface PhotoMetadata {
   supir: string;
   helper1?: string;
   helper2?: string;
+  description?: string;
   keterangan?: string;
   tags?: string[];
   geo?: {
@@ -37,6 +38,7 @@ export interface UploadRecord {
   supir: string;
   helper1?: string;
   helper2?: string;
+  description?: string;
   folder_path: string;
   file_count: number;
   created_at: string;

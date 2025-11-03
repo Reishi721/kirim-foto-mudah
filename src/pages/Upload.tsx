@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -30,6 +31,7 @@ export default function Upload() {
       noSuratJalan: '',
       helper1: '',
       helper2: '',
+      description: '',
     },
   });
 
@@ -106,6 +108,7 @@ export default function Upload() {
         supir: data.supir,
         helper1: data.helper1 || '—',
         helper2: data.helper2 || '—',
+        description: data.description || null,
         folder_path: folderPath,
         file_count: files.length,
         user_id: user.user?.id,
@@ -273,6 +276,26 @@ export default function Upload() {
                     )}
                   />
                 </div>
+
+                <FormField
+                  control={form.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Description</FormLabel>
+                      <FormControl>
+                        <Textarea 
+                          placeholder="Add notes or description about this delivery (optional)" 
+                          className="resize-none" 
+                          rows={3}
+                          {...field} 
+                          disabled={isUploading} 
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
                 <div className="border-t pt-6">
                   <h3 className="font-semibold text-foreground mb-4">Upload Photos *</h3>

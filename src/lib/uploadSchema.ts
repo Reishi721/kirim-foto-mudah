@@ -9,6 +9,7 @@ export const UploadFormSchema = z.object({
   supir: z.enum(DRIVERS, { required_error: "Please select a driver" }),
   helper1: z.string().optional(),
   helper2: z.string().optional(),
+  description: z.string().max(500, "Description must be less than 500 characters").optional(),
 });
 
 export type UploadFormData = z.infer<typeof UploadFormSchema>;

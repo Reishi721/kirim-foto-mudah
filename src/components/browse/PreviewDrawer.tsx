@@ -145,6 +145,14 @@ export function PreviewDrawer({
                     <span className="font-medium text-foreground">{metadata.helper2}</span>
                   </div>
                 )}
+                {metadata.description && (
+                  <div className="flex flex-col gap-1 pt-2">
+                    <span className="text-muted-foreground">Description:</span>
+                    <p className="text-foreground text-sm bg-muted p-3 rounded-md">
+                      {metadata.description}
+                    </p>
+                  </div>
+                )}
                 {metadata.keterangan && (
                   <div className="flex flex-col gap-1">
                     <span className="text-muted-foreground">Keterangan:</span>

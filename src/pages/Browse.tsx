@@ -138,6 +138,7 @@ export default function Browse() {
                   supir: record.supir,
                   helper1: record.helper1,
                   helper2: record.helper2,
+                  description: record.description,
                 }
               : undefined,
           };

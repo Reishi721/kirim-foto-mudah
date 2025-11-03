@@ -17,6 +17,7 @@ export type Database = {
       upload_records: {
         Row: {
           created_at: string | null
+          description: string | null
           file_count: number | null
           folder_path: string
           helper1: string | null
@@ -31,6 +32,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          description?: string | null
           file_count?: number | null
           folder_path: string
           helper1?: string | null
@@ -45,6 +47,7 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          description?: string | null
           file_count?: number | null
           folder_path?: string
           helper1?: string | null
