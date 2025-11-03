@@ -40,7 +40,10 @@ export function useMapClustering<T extends { id: string; latitude: number; longi
   }, [locations]);
 
   const clusters = useMemo(() => {
-    if (!bounds) return [];
+    if (!bounds || !Array.isArray(bounds) || bounds.length !== 2) return [];
+    if (!Array.isArray(bounds[0]) || !Array.isArray(bounds[1])) return [];
+    if (bounds[0].length !== 2 || bounds[1].length !== 2) return [];
+    
     const [west, south, east, north] = [
       bounds[0][1],
       bounds[0][0],
