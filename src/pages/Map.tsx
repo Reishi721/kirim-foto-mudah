@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
-import L from 'leaflet';
+import maplibregl from 'maplibre-gl';
 import { supabase } from '@/integrations/supabase/client';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,15 +9,7 @@ import { Loader2, Download, MapPin, Navigation } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { motion } from 'framer-motion';
-import 'leaflet/dist/leaflet.css';
-
-// Fix for default marker icons
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-});
+import 'maplibre-gl/dist/maplibre-gl.css';
 
 interface PhotoLocation {
   id: string;
@@ -33,17 +25,8 @@ interface PhotoLocation {
   };
 }
 
-interface Geofence {
-  id: string;
-  name: string;
-  centerLatitude: number;
-  centerLongitude: number;
-  radiusMeters: number;
-}
-
 export default function Map() {
   const [locations, setLocations] = useState<PhotoLocation[]>([]);
-  const [geofences, setGeofences] = useState<Geofence[]>([]);
   const [selectedDriver, setSelectedDriver] = useState<string>('all');
   const [drivers, setDrivers] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -51,48 +34,42 @@ export default function Map() {
   const [dates, setDates] = useState<string[]>([]);
   
   const mapContainer = useRef<HTMLDivElement>(null);
-  const mapInstance = useRef<L.Map | null>(null);
-  const markersLayer = useRef<L.LayerGroup | null>(null);
-  const geofencesLayer = useRef<L.LayerGroup | null>(null);
-  const routeLayer = useRef<L.Polyline | null>(null);
+  const map = useRef<maplibregl.Map | null>(null);
+  const markers = useRef<maplibregl.Marker[]>([]);
 
   useEffect(() => {
     loadMapData();
   }, []);
 
   useEffect(() => {
-    // Initialize map only once
-    if (mapContainer.current && !mapInstance.current) {
-      mapInstance.current = L.map(mapContainer.current).setView([-6.2088, 106.8456], 13);
-      
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-      }).addTo(mapInstance.current);
+    if (!mapContainer.current || map.current) return;
 
-      markersLayer.current = L.layerGroup().addTo(mapInstance.current);
-      geofencesLayer.current = L.layerGroup().addTo(mapInstance.current);
-    }
+    map.current = new maplibregl.Map({
+      container: mapContainer.current,
+      style: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
+      center: [106.8456, -6.2088],
+      zoom: 13
+    });
+
+    map.current.addControl(new maplibregl.NavigationControl(), 'top-right');
 
     return () => {
-      // Cleanup on unmount
-      if (mapInstance.current) {
-        mapInstance.current.remove();
-        mapInstance.current = null;
+      if (map.current) {
+        map.current.remove();
+        map.current = null;
       }
     };
   }, []);
 
   useEffect(() => {
-    // Update map when filtered locations change
-    if (mapInstance.current && markersLayer.current && geofencesLayer.current) {
-      updateMap();
+    if (map.current && locations.length > 0) {
+      updateMarkers();
     }
-  }, [locations, geofences, selectedDriver, selectedDate]);
+  }, [locations, selectedDriver, selectedDate]);
 
   const loadMapData = async () => {
     setIsLoading(true);
     try {
-      // Load photo locations with metadata (from EXIF data)
       const { data: photos, error: photosError } = await supabase
         .from('photo_metadata')
         .select(`
@@ -123,7 +100,6 @@ export default function Map() {
         uploadRecord: photo.upload_record
       }));
 
-      // Also load upload records with GPS (from device location)
       const { data: uploads, error: uploadsError } = await supabase
         .from('upload_records')
         .select('*')
@@ -133,7 +109,6 @@ export default function Map() {
 
       if (uploadsError) throw uploadsError;
 
-      // Add upload record locations to the map
       const uploadLocations: PhotoLocation[] = (uploads || []).map((upload: any) => ({
         id: upload.id,
         latitude: parseFloat(upload.latitude),
@@ -148,36 +123,14 @@ export default function Map() {
         }
       }));
 
-      // Combine both sources
       formattedLocations = [...formattedLocations, ...uploadLocations];
-
       setLocations(formattedLocations);
 
-      // Extract unique drivers
       const uniqueDrivers = [...new Set(formattedLocations.map(loc => loc.uploadRecord.supir))];
       setDrivers(uniqueDrivers);
 
-      // Extract unique dates
       const uniqueDates = [...new Set(formattedLocations.map(loc => loc.uploadRecord.tanggal))];
       setDates(uniqueDates.sort().reverse());
-
-      // Load geofences
-      const { data: geofenceData, error: geofenceError } = await supabase
-        .from('geofence_config')
-        .select('*')
-        .eq('is_active', true);
-
-      if (geofenceError) throw geofenceError;
-
-      const formattedGeofences: Geofence[] = (geofenceData || []).map((g: any) => ({
-        id: g.id,
-        name: g.name,
-        centerLatitude: parseFloat(g.center_latitude),
-        centerLongitude: parseFloat(g.center_longitude),
-        radiusMeters: g.radius_meters
-      }));
-
-      setGeofences(formattedGeofences);
     } catch (error) {
       console.error('Error loading map data:', error);
       toast.error('Failed to load map data');
@@ -186,16 +139,12 @@ export default function Map() {
     }
   };
 
-  const updateMap = () => {
-    if (!mapInstance.current || !markersLayer.current || !geofencesLayer.current) return;
+  const updateMarkers = () => {
+    if (!map.current) return;
 
-    // Clear existing layers
-    markersLayer.current.clearLayers();
-    geofencesLayer.current.clearLayers();
-    if (routeLayer.current) {
-      routeLayer.current.remove();
-      routeLayer.current = null;
-    }
+    // Remove existing markers
+    markers.current.forEach(marker => marker.remove());
+    markers.current = [];
 
     // Filter locations
     const filteredLocations = locations.filter(loc => {
@@ -208,54 +157,37 @@ export default function Map() {
 
     // Add markers
     filteredLocations.forEach(loc => {
-      const marker = L.marker([loc.latitude, loc.longitude]);
-      
-      const popupContent = `
-        <div class="space-y-1">
-          <p class="font-semibold">${loc.fileName}</p>
-          <p class="text-sm">Doc: ${loc.uploadRecord.no_surat_jalan}</p>
-          <p class="text-sm">Driver: ${loc.uploadRecord.supir}</p>
-          <p class="text-sm">Type: ${loc.uploadRecord.tipe}</p>
-          <p class="text-sm">Date: ${format(new Date(loc.uploadRecord.tanggal), 'PPP')}</p>
-          ${loc.capturedAt ? `<p class="text-xs text-muted-foreground">Captured: ${format(new Date(loc.capturedAt), 'PPp')}</p>` : ''}
+      const el = document.createElement('div');
+      el.className = 'custom-marker';
+      el.style.backgroundImage = 'url(https://docs.mapbox.com/mapbox-gl-js/assets/custom_marker.png)';
+      el.style.width = '32px';
+      el.style.height = '40px';
+      el.style.backgroundSize = '100%';
+      el.style.cursor = 'pointer';
+
+      const popupHTML = `
+        <div style="padding: 8px;">
+          <p style="font-weight: 600; margin-bottom: 4px;">${loc.fileName}</p>
+          <p style="font-size: 0.875rem;">Doc: ${loc.uploadRecord.no_surat_jalan}</p>
+          <p style="font-size: 0.875rem;">Driver: ${loc.uploadRecord.supir}</p>
+          <p style="font-size: 0.875rem;">Type: ${loc.uploadRecord.tipe}</p>
+          <p style="font-size: 0.875rem;">Date: ${format(new Date(loc.uploadRecord.tanggal), 'PPP')}</p>
+          ${loc.capturedAt ? `<p style="font-size: 0.75rem; color: #6b7280;">Captured: ${format(new Date(loc.capturedAt), 'PPp')}</p>` : ''}
         </div>
       `;
-      
-      marker.bindPopup(popupContent);
-      marker.addTo(markersLayer.current!);
+
+      const marker = new maplibregl.Marker(el)
+        .setLngLat([loc.longitude, loc.latitude])
+        .setPopup(new maplibregl.Popup({ offset: 25 }).setHTML(popupHTML))
+        .addTo(map.current!);
+
+      markers.current.push(marker);
     });
 
-    // Add geofences
-    geofences.forEach(fence => {
-      const circle = L.circle([fence.centerLatitude, fence.centerLongitude], {
-        radius: fence.radiusMeters,
-        color: 'blue',
-        fillColor: 'blue',
-        fillOpacity: 0.1
-      });
-      
-      circle.bindPopup(`<strong>${fence.name}</strong><br/>Radius: ${fence.radiusMeters}m`);
-      circle.addTo(geofencesLayer.current!);
-    });
-
-    // Add route polyline
-    const sortedLocations = [...filteredLocations].sort((a, b) => {
-      const dateA = a.capturedAt ? new Date(a.capturedAt).getTime() : 0;
-      const dateB = b.capturedAt ? new Date(b.capturedAt).getTime() : 0;
-      return dateA - dateB;
-    });
-
-    if (sortedLocations.length > 1) {
-      const routeCoordinates: L.LatLngExpression[] = sortedLocations.map(loc => [loc.latitude, loc.longitude]);
-      routeLayer.current = L.polyline(routeCoordinates, {
-        color: 'hsl(205, 100%, 64%)',
-        weight: 3
-      }).addTo(mapInstance.current!);
-    }
-
-    // Fit bounds to markers
-    const bounds = L.latLngBounds(filteredLocations.map(loc => [loc.latitude, loc.longitude]));
-    mapInstance.current.fitBounds(bounds, { padding: [50, 50] });
+    // Fit bounds
+    const bounds = new maplibregl.LngLatBounds();
+    filteredLocations.forEach(loc => bounds.extend([loc.longitude, loc.latitude]));
+    map.current.fitBounds(bounds, { padding: 50 });
   };
 
   const filteredLocations = locations.filter(loc => {
@@ -391,11 +323,6 @@ export default function Map() {
               <Navigation className="mr-1 h-3 w-3" />
               {filteredLocations.length} locations
             </Badge>
-            {geofences.length > 0 && (
-              <Badge variant="secondary">
-                {geofences.length} geofence(s) active
-              </Badge>
-            )}
           </div>
         </div>
       </motion.div>
