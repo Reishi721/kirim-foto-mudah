@@ -1,12 +1,12 @@
-import { Link, useLocation } from 'react-router-dom';
-import { Upload, FolderOpen, LogOut, Truck } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Upload, FolderOpen, LogOut, Truck, Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
 
 export function Navigation() {
   const location = useLocation();
+  const navigate = useNavigate();
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -18,14 +18,24 @@ export function Navigation() {
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center gap-8">
-            <Link to="/upload" className="flex items-center gap-2">
+            <button onClick={() => navigate('/')} className="flex items-center gap-2 hover:opacity-80 transition-opacity">
               <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
                 <Truck className="w-6 h-6 text-primary" />
               </div>
               <span className="font-semibold text-lg text-foreground">Surat Jalan</span>
-            </Link>
+            </button>
 
             <div className="flex items-center gap-2">
+              <Link to="/">
+                <Button
+                  variant={location.pathname === '/' ? 'default' : 'ghost'}
+                  size="sm"
+                  className="gap-2"
+                >
+                  <Home className="w-4 h-4" />
+                  Home
+                </Button>
+              </Link>
               <Link to="/upload">
                 <Button
                   variant={location.pathname === '/upload' ? 'default' : 'ghost'}

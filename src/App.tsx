@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Navigation } from "@/components/Navigation";
+import Dashboard from "./pages/Dashboard";
 import Upload from "./pages/Upload";
 import Browse from "./pages/Browse";
 import Login from "./pages/Login";
@@ -13,7 +14,7 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-function ProtectedRoute({ children }: { children: React.ReactNode }) {
+function ProtectedRoute({ children, showNav = false }: { children: React.ReactNode; showNav?: boolean }) {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
 
   useEffect(() => {
@@ -34,7 +35,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
   return isAuthenticated ? (
     <>
-      <Navigation />
+      {showNav && <Navigation />}
       {children}
     </>
   ) : (
@@ -49,12 +50,19 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Navigate to="/upload" replace />} />
           <Route path="/login" element={<Login />} />
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute showNav={false}>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="/upload"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute showNav={true}>
                 <Upload />
               </ProtectedRoute>
             }
@@ -62,7 +70,7 @@ const App = () => (
           <Route
             path="/browse"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute showNav={true}>
                 <Browse />
               </ProtectedRoute>
             }
