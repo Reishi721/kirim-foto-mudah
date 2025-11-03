@@ -1,6 +1,5 @@
-import { useEffect, useState } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, Polyline, Circle, useMap } from 'react-leaflet';
-import { LatLngExpression } from 'leaflet';
+import { useEffect, useState, useRef } from 'react';
+import L from 'leaflet';
 import { supabase } from '@/integrations/supabase/client';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,8 +10,14 @@ import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { motion } from 'framer-motion';
 import 'leaflet/dist/leaflet.css';
-import 'leaflet-defaulticon-compatibility';
-import 'leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css';
+
+// Fix for default marker icons
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+});
 
 interface PhotoLocation {
   id: string;
@@ -36,85 +41,6 @@ interface Geofence {
   radiusMeters: number;
 }
 
-// Component to fit map bounds - wrapped in Fragment for React 18 compatibility
-function MapBounds({ locations }: { locations: PhotoLocation[] }) {
-  const map = useMap();
-  
-  useEffect(() => {
-    if (locations.length > 0) {
-      const bounds: [number, number][] = locations.map(loc => [loc.latitude, loc.longitude]);
-      map.fitBounds(bounds, { padding: [50, 50] });
-    }
-  }, [locations, map]);
-  
-  return null;
-}
-
-// Map content component to ensure proper React 18 context handling
-function MapContent({ locations, geofences, routeCoordinates }: {
-  locations: PhotoLocation[];
-  geofences: Geofence[];
-  routeCoordinates: LatLngExpression[];
-}) {
-  return (
-    <>
-      <TileLayer
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-      />
-
-      <MapBounds locations={locations} />
-
-      {/* Geofences */}
-      {geofences.map(fence => (
-        <Circle
-          key={fence.id}
-          center={[fence.centerLatitude, fence.centerLongitude] as LatLngExpression}
-          radius={fence.radiusMeters}
-          pathOptions={{ color: 'blue', fillColor: 'blue', fillOpacity: 0.1 }}
-        >
-          <Popup>
-            <strong>{fence.name}</strong>
-            <br />
-            Radius: {fence.radiusMeters}m
-          </Popup>
-        </Circle>
-      ))}
-
-      {/* Route polyline */}
-      {routeCoordinates.length > 1 && (
-        <Polyline
-          positions={routeCoordinates}
-          pathOptions={{ color: 'hsl(205, 100%, 64%)', weight: 3 }}
-        />
-      )}
-
-      {/* Location markers */}
-      {locations.map(loc => (
-        <Marker
-          key={loc.id}
-          position={[loc.latitude, loc.longitude]}
-        >
-          <Popup>
-            <div className="space-y-1">
-              <p className="font-semibold">{loc.fileName}</p>
-              <p className="text-sm">Doc: {loc.uploadRecord.no_surat_jalan}</p>
-              <p className="text-sm">Driver: {loc.uploadRecord.supir}</p>
-              <p className="text-sm">Type: {loc.uploadRecord.tipe}</p>
-              <p className="text-sm">Date: {format(new Date(loc.uploadRecord.tanggal), 'PPP')}</p>
-              {loc.capturedAt && (
-                <p className="text-xs text-muted-foreground">
-                  Captured: {format(new Date(loc.capturedAt), 'PPp')}
-                </p>
-              )}
-            </div>
-          </Popup>
-        </Marker>
-      ))}
-    </>
-  );
-}
-
 export default function Map() {
   const [locations, setLocations] = useState<PhotoLocation[]>([]);
   const [geofences, setGeofences] = useState<Geofence[]>([]);
@@ -123,10 +49,45 @@ export default function Map() {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState<string>('all');
   const [dates, setDates] = useState<string[]>([]);
+  
+  const mapContainer = useRef<HTMLDivElement>(null);
+  const mapInstance = useRef<L.Map | null>(null);
+  const markersLayer = useRef<L.LayerGroup | null>(null);
+  const geofencesLayer = useRef<L.LayerGroup | null>(null);
+  const routeLayer = useRef<L.Polyline | null>(null);
 
   useEffect(() => {
     loadMapData();
   }, []);
+
+  useEffect(() => {
+    // Initialize map only once
+    if (mapContainer.current && !mapInstance.current) {
+      mapInstance.current = L.map(mapContainer.current).setView([-6.2088, 106.8456], 13);
+      
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+      }).addTo(mapInstance.current);
+
+      markersLayer.current = L.layerGroup().addTo(mapInstance.current);
+      geofencesLayer.current = L.layerGroup().addTo(mapInstance.current);
+    }
+
+    return () => {
+      // Cleanup on unmount
+      if (mapInstance.current) {
+        mapInstance.current.remove();
+        mapInstance.current = null;
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    // Update map when filtered locations change
+    if (mapInstance.current && markersLayer.current && geofencesLayer.current) {
+      updateMap();
+    }
+  }, [locations, geofences, selectedDriver, selectedDate]);
 
   const loadMapData = async () => {
     setIsLoading(true);
@@ -225,6 +186,78 @@ export default function Map() {
     }
   };
 
+  const updateMap = () => {
+    if (!mapInstance.current || !markersLayer.current || !geofencesLayer.current) return;
+
+    // Clear existing layers
+    markersLayer.current.clearLayers();
+    geofencesLayer.current.clearLayers();
+    if (routeLayer.current) {
+      routeLayer.current.remove();
+      routeLayer.current = null;
+    }
+
+    // Filter locations
+    const filteredLocations = locations.filter(loc => {
+      if (selectedDriver !== 'all' && loc.uploadRecord.supir !== selectedDriver) return false;
+      if (selectedDate !== 'all' && loc.uploadRecord.tanggal !== selectedDate) return false;
+      return true;
+    });
+
+    if (filteredLocations.length === 0) return;
+
+    // Add markers
+    filteredLocations.forEach(loc => {
+      const marker = L.marker([loc.latitude, loc.longitude]);
+      
+      const popupContent = `
+        <div class="space-y-1">
+          <p class="font-semibold">${loc.fileName}</p>
+          <p class="text-sm">Doc: ${loc.uploadRecord.no_surat_jalan}</p>
+          <p class="text-sm">Driver: ${loc.uploadRecord.supir}</p>
+          <p class="text-sm">Type: ${loc.uploadRecord.tipe}</p>
+          <p class="text-sm">Date: ${format(new Date(loc.uploadRecord.tanggal), 'PPP')}</p>
+          ${loc.capturedAt ? `<p class="text-xs text-muted-foreground">Captured: ${format(new Date(loc.capturedAt), 'PPp')}</p>` : ''}
+        </div>
+      `;
+      
+      marker.bindPopup(popupContent);
+      marker.addTo(markersLayer.current!);
+    });
+
+    // Add geofences
+    geofences.forEach(fence => {
+      const circle = L.circle([fence.centerLatitude, fence.centerLongitude], {
+        radius: fence.radiusMeters,
+        color: 'blue',
+        fillColor: 'blue',
+        fillOpacity: 0.1
+      });
+      
+      circle.bindPopup(`<strong>${fence.name}</strong><br/>Radius: ${fence.radiusMeters}m`);
+      circle.addTo(geofencesLayer.current!);
+    });
+
+    // Add route polyline
+    const sortedLocations = [...filteredLocations].sort((a, b) => {
+      const dateA = a.capturedAt ? new Date(a.capturedAt).getTime() : 0;
+      const dateB = b.capturedAt ? new Date(b.capturedAt).getTime() : 0;
+      return dateA - dateB;
+    });
+
+    if (sortedLocations.length > 1) {
+      const routeCoordinates: L.LatLngExpression[] = sortedLocations.map(loc => [loc.latitude, loc.longitude]);
+      routeLayer.current = L.polyline(routeCoordinates, {
+        color: 'hsl(205, 100%, 64%)',
+        weight: 3
+      }).addTo(mapInstance.current!);
+    }
+
+    // Fit bounds to markers
+    const bounds = L.latLngBounds(filteredLocations.map(loc => [loc.latitude, loc.longitude]));
+    mapInstance.current.fitBounds(bounds, { padding: [50, 50] });
+  };
+
   const filteredLocations = locations.filter(loc => {
     if (selectedDriver !== 'all' && loc.uploadRecord.supir !== selectedDriver) return false;
     if (selectedDate !== 'all' && loc.uploadRecord.tanggal !== selectedDate) return false;
@@ -294,19 +327,6 @@ export default function Map() {
     URL.revokeObjectURL(url);
     toast.success('KML exported successfully');
   };
-
-  // Calculate route polyline
-  const routeCoordinates: LatLngExpression[] = filteredLocations
-    .sort((a, b) => {
-      const dateA = a.capturedAt ? new Date(a.capturedAt).getTime() : 0;
-      const dateB = b.capturedAt ? new Date(b.capturedAt).getTime() : 0;
-      return dateA - dateB;
-    })
-    .map(loc => [loc.latitude, loc.longitude]);
-
-  const defaultCenter: LatLngExpression = filteredLocations.length > 0
-    ? [filteredLocations[0].latitude, filteredLocations[0].longitude]
-    : [-6.2088, 106.8456]; // Jakarta default
 
   if (isLoading) {
     return (
@@ -382,25 +402,14 @@ export default function Map() {
 
       <div className="container mx-auto px-4 pb-8">
         <Card className="p-0 overflow-hidden" style={{ height: '70vh' }}>
-          {filteredLocations.length === 0 ? (
+          {locations.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center text-muted-foreground">
               <MapPin className="h-16 w-16 mb-4 opacity-50" />
               <p>No GPS data available</p>
               <p className="text-sm">Upload photos with GPS coordinates to see them here</p>
             </div>
           ) : (
-            <MapContainer
-              center={defaultCenter}
-              zoom={13}
-              style={{ height: '100%', width: '100%' } as React.CSSProperties}
-              scrollWheelZoom={true}
-            >
-              <MapContent 
-                locations={filteredLocations} 
-                geofences={geofences}
-                routeCoordinates={routeCoordinates}
-              />
-            </MapContainer>
+            <div ref={mapContainer} className="h-full w-full" />
           )}
         </Card>
       </div>
