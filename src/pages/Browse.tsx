@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Grid3x3, List, Loader2, PanelLeftClose, PanelLeft } from 'lucide-react';
+import { Grid3x3, List, Loader2, PanelLeftClose, PanelLeft, ChevronLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { FolderTree } from '@/components/browse/FolderTree';
@@ -210,6 +210,40 @@ export default function Browse() {
     setSearchParams(new URLSearchParams());
   };
 
+  const handleGoBack = () => {
+    if (!selectedFolder) return;
+    
+    // Split the path and go up one level
+    const pathParts = selectedFolder.split('/');
+    pathParts.pop(); // Remove the last segment
+    
+    if (pathParts.length === 0) {
+      // Back to root - clear selection
+      setSelectedFolder(null);
+      setSelectedNode(null);
+      setPhotos([]);
+    } else {
+      // Navigate to parent folder
+      const parentPath = pathParts.join('/');
+      
+      // Find the parent node in the folder tree
+      const findNode = (nodes: FolderNode[], path: string): FolderNode | null => {
+        for (const node of nodes) {
+          if (node.path === path) return node;
+          if (node.children) {
+            const found = findNode(node.children, path);
+            if (found) return found;
+          }
+        }
+        return null;
+      };
+      
+      const parentNode = findNode(folderTree, parentPath);
+      setSelectedFolder(parentPath);
+      setSelectedNode(parentNode);
+    }
+  };
+
   const handlePhotoClick = (photo: PhotoFile, index: number) => {
     setSelectedPhoto(photo);
     setSelectedPhotoIndex(index);
@@ -300,6 +334,17 @@ export default function Browse() {
               >
                 <PanelLeft className="h-4 w-4" />
                 <span className="hidden sm:inline">Folders</span>
+              </Button>
+            )}
+            {selectedFolder && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleGoBack}
+                className="flex items-center gap-2"
+              >
+                <ChevronLeft className="h-4 w-4" />
+                <span className="hidden sm:inline">Previous Folder</span>
               </Button>
             )}
             <h1 className="text-xl font-semibold text-foreground">Browse Photos</h1>
