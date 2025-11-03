@@ -155,18 +155,10 @@ export default function Map() {
 
     if (filteredLocations.length === 0) return;
 
-    // Add markers
+    // Add markers with default red pins
     filteredLocations.forEach(loc => {
-      const el = document.createElement('div');
-      el.className = 'custom-marker';
-      el.style.backgroundImage = 'url(https://docs.mapbox.com/mapbox-gl-js/assets/custom_marker.png)';
-      el.style.width = '32px';
-      el.style.height = '40px';
-      el.style.backgroundSize = '100%';
-      el.style.cursor = 'pointer';
-
       const popupHTML = `
-        <div style="padding: 8px;">
+        <div style="padding: 8px; min-width: 200px;">
           <p style="font-weight: 600; margin-bottom: 4px;">${loc.fileName}</p>
           <p style="font-size: 0.875rem;">Doc: ${loc.uploadRecord.no_surat_jalan}</p>
           <p style="font-size: 0.875rem;">Driver: ${loc.uploadRecord.supir}</p>
@@ -176,7 +168,7 @@ export default function Map() {
         </div>
       `;
 
-      const marker = new maplibregl.Marker(el)
+      const marker = new maplibregl.Marker({ color: '#ef4444' })
         .setLngLat([loc.longitude, loc.latitude])
         .setPopup(new maplibregl.Popup({ offset: 25 }).setHTML(popupHTML))
         .addTo(map.current!);
@@ -187,7 +179,7 @@ export default function Map() {
     // Fit bounds
     const bounds = new maplibregl.LngLatBounds();
     filteredLocations.forEach(loc => bounds.extend([loc.longitude, loc.latitude]));
-    map.current.fitBounds(bounds, { padding: 50 });
+    map.current.fitBounds(bounds, { padding: 50, duration: 0 });
   };
 
   const filteredLocations = locations.filter(loc => {
