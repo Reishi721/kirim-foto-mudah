@@ -1,8 +1,10 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Grid3x3, List, Loader2, PanelLeftClose, PanelLeft, ChevronLeft } from 'lucide-react';
+import { Grid3x3, List, Loader2, PanelLeftClose, PanelLeft, ChevronLeft, FolderTree as FolderTreeIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { FolderTree } from '@/components/browse/FolderTree';
 import { FolderGrid } from '@/components/browse/FolderGrid';
 import { FiltersToolbar } from '@/components/browse/FiltersToolbar';
@@ -29,6 +31,8 @@ export default function Browse() {
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingPhotos, setIsLoadingPhotos] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isMobileSheetOpen, setIsMobileSheetOpen] = useState(false);
+  const isMobile = useIsMobile();
 
   // Parse filters from URL
   const filters: FilterState = useMemo(() => ({
@@ -281,59 +285,100 @@ export default function Browse() {
     );
   }
 
+  const FolderTreeContent = () => (
+    <>
+      <div className="p-4 border-b flex items-center justify-between">
+        <div className="flex-1">
+          <h2 className="font-semibold text-lg text-foreground">Folder Structure</h2>
+          <p className="text-xs text-muted-foreground mt-1">
+            {records.length} delivery records
+          </p>
+        </div>
+        {!isMobile && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setIsSidebarOpen(false)}
+            className="hover:bg-muted"
+          >
+            <PanelLeftClose className="h-4 w-4" />
+          </Button>
+        )}
+      </div>
+      <div className="flex-1 overflow-y-auto">
+        <FolderTree
+          nodes={folderTree}
+          onNodeClick={(node) => {
+            setSelectedFolder(node.path);
+            setSelectedNode(node);
+            if (isMobile) setIsMobileSheetOpen(false);
+          }}
+          selectedPath={selectedFolder || undefined}
+        />
+      </div>
+    </>
+  );
+
   return (
     <div className="flex h-screen bg-background overflow-hidden">
-      {/* Left Panel - Folder Tree (Collapsible) - Hidden on mobile */}
+      {/* Desktop Sidebar - Hidden on mobile */}
       <AnimatePresence>
-        {isSidebarOpen && (
+        {isSidebarOpen && !isMobile && (
           <motion.div
             initial={{ width: 0, opacity: 0 }}
             animate={{ width: 320, opacity: 1 }}
             exit={{ width: 0, opacity: 0 }}
             transition={{ duration: 0.3, ease: 'easeInOut' }}
-            className="border-r flex-col overflow-hidden hidden md:flex"
+            className="border-r flex-col overflow-hidden flex"
           >
-            <div className="p-4 border-b flex items-center justify-between">
-              <div className="flex-1">
-                <h2 className="font-semibold text-lg text-foreground">Folder Structure</h2>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {records.length} delivery records
-                </p>
-              </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setIsSidebarOpen(false)}
-                className="hover:bg-muted"
-              >
-                <PanelLeftClose className="h-4 w-4" />
-              </Button>
-            </div>
+            <FolderTreeContent />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Mobile Sheet for Folder Navigation */}
+      {isMobile && (
+        <Sheet open={isMobileSheetOpen} onOpenChange={setIsMobileSheetOpen}>
+          <SheetContent side="left" className="w-[85vw] sm:w-[400px] p-0 flex flex-col">
+            <SheetHeader className="p-4 border-b">
+              <SheetTitle>Folder Structure</SheetTitle>
+            </SheetHeader>
             <div className="flex-1 overflow-y-auto">
               <FolderTree
                 nodes={folderTree}
                 onNodeClick={(node) => {
                   setSelectedFolder(node.path);
                   setSelectedNode(node);
+                  setIsMobileSheetOpen(false);
                 }}
                 selectedPath={selectedFolder || undefined}
               />
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          </SheetContent>
+        </Sheet>
+      )}
 
       {/* Right Panel - Results */}
       <div className="flex-1 flex flex-col">
         {/* Toolbar */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-3 sm:px-4 py-3 border-b bg-card">
           <div className="flex items-center gap-2 overflow-x-auto">
-            {!isSidebarOpen && (
+            {isMobile ? (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsMobileSheetOpen(true)}
+                className="flex items-center gap-2 shrink-0"
+              >
+                <FolderTreeIcon className="h-4 w-4" />
+                <span>Folders</span>
+              </Button>
+            ) : !isSidebarOpen && (
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setIsSidebarOpen(true)}
-                className="hidden md:flex items-center gap-2 shrink-0"
+                className="flex items-center gap-2 shrink-0"
               >
                 <PanelLeft className="h-4 w-4" />
                 <span className="hidden sm:inline">Folders</span>
