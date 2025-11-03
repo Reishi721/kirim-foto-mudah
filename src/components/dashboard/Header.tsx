@@ -11,6 +11,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useState, useEffect } from 'react';
+import victoryLogo from '@/assets/victory-logo.png';
 
 export function DashboardHeader() {
   const navigate = useNavigate();
@@ -49,10 +50,8 @@ export function DashboardHeader() {
       <div className="container flex h-16 items-center gap-4 px-4">
         {/* Logo */}
         <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-primary shadow-soft">
-            <span className="text-lg font-bold text-primary-foreground">DFS</span>
-          </div>
-          <span className="hidden font-semibold text-lg sm:inline-block">Documenting File System</span>
+          <img src={victoryLogo} alt="Victory Logo" className="h-9 w-auto" />
+          <span className="hidden font-semibold text-lg sm:inline-block">Victory Documenting</span>
         </div>
 
         <div className="flex-1" />

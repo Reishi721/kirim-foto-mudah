@@ -307,7 +307,7 @@ export default function Dashboard() {
       {/* Footer */}
       <footer className="border-t mt-12">
         <div className="container mx-auto px-4 py-6 text-center text-sm text-muted-foreground">
-          <p>Documenting File System © {new Date().getFullYear()}</p>
+          <p>Victory Documenting System © {new Date().getFullYear()}</p>
         </div>
       </footer>
     </div>
