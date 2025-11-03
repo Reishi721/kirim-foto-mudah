@@ -1,9 +1,10 @@
 import { useCallback, useState } from 'react';
-import { Upload, X, ImageIcon } from 'lucide-react';
+import { Upload, X, ImageIcon, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { FileWithProgress } from '@/lib/uploadSchema';
 import { compressImage, createImagePreview } from '@/lib/imageCompression';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Progress } from '@/components/ui/progress';
 
 interface FileUploadZoneProps {
   files: FileWithProgress[];
@@ -29,7 +30,7 @@ export function FileUploadZone({ files, onFilesAdded, onFileRemoved, disabled }:
         id,
         file,
         progress: 0,
-        status: 'pending',
+        status: 'compressing',
         preview,
       });
     }
@@ -40,10 +41,10 @@ export function FileUploadZone({ files, onFilesAdded, onFileRemoved, disabled }:
     newFiles.forEach(async (fileWithProgress) => {
       try {
         const compressed = await compressImage(fileWithProgress.file);
-        // Update the file with compressed version
-        onFilesAdded([{ ...fileWithProgress, compressedFile: compressed }]);
+        onFilesAdded([{ ...fileWithProgress, compressedFile: compressed, status: 'pending' }]);
       } catch (error) {
         console.error('Compression failed:', error);
+        onFilesAdded([{ ...fileWithProgress, status: 'pending' }]);
       }
     });
   }, [onFilesAdded]);
@@ -73,34 +74,63 @@ export function FileUploadZone({ files, onFilesAdded, onFileRemoved, disabled }:
     }
   }, [handleFiles]);
 
+  const compressingFiles = files.filter(f => f.status === 'compressing');
+  const compressingProgress = compressingFiles.length > 0 ? 50 : 0;
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
+      {/* Upload Zone */}
       <div
         onDrop={handleDrop}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
-        className={`border-2 border-dashed rounded-lg p-8 text-center transition-all ${
+        className={`relative overflow-hidden border-2 border-dashed rounded-2xl p-12 text-center transition-all duration-220 glass-card ${
           isDragging
-            ? 'border-primary bg-primary/5'
-            : 'border-border hover:border-primary/50'
+            ? 'border-brand bg-brand/5 scale-[1.02]'
+            : 'border-border/50 hover:border-brand/50 hover:bg-brand/5'
         } ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
       >
-        <div className="flex flex-col items-center gap-3">
-          <Upload className="w-12 h-12 text-muted-foreground" />
+        {isDragging && (
+          <div className="absolute inset-0 bg-gradient-brand opacity-10 pointer-events-none" />
+        )}
+        
+        <div className="flex flex-col items-center gap-4">
+          <div className="relative">
+            <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-brand/10 group-hover:bg-brand/20 transition-colors">
+              <Upload className="w-10 h-10 text-brand" />
+            </div>
+            {isDragging && (
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                className="absolute -top-2 -right-2"
+              >
+                <Sparkles className="w-6 h-6 text-brand" />
+              </motion.div>
+            )}
+          </div>
+          
           <div>
-            <p className="font-medium text-foreground">Drop images here or click to browse</p>
-            <p className="text-sm text-muted-foreground mt-1">
-              Supports: JPG, PNG, WebP (max 10MB per file)
+            <p className="font-semibold text-lg text-foreground mb-2">
+              {isDragging ? 'Drop your images here' : 'Drop images here or click to browse'}
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Supports JPG, PNG, WebP • Auto-compressed • Max 10MB per file
             </p>
           </div>
+          
           <Button
             type="button"
             variant="outline"
+            size="lg"
             disabled={disabled}
             onClick={() => document.getElementById('file-input')?.click()}
+            className="mt-2"
           >
+            <Upload className="mr-2 h-4 w-4" />
             Select Files
           </Button>
+          
           <input
             id="file-input"
             type="file"
@@ -113,22 +143,49 @@ export function FileUploadZone({ files, onFilesAdded, onFileRemoved, disabled }:
         </div>
       </div>
 
+      {/* Compression Progress */}
+      {compressingFiles.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="glass-card p-4 rounded-xl"
+        >
+          <div className="flex items-center gap-3 mb-2">
+            <Sparkles className="h-4 w-4 text-brand animate-pulse" />
+            <p className="text-sm font-medium">Compressing {compressingFiles.length} image{compressingFiles.length !== 1 ? 's' : ''}...</p>
+          </div>
+          <Progress value={compressingProgress} className="h-2" />
+        </motion.div>
+      )}
+
+      {/* File Grid */}
       {files.length > 0 && (
-        <div className="space-y-2">
-          <p className="text-sm font-medium text-foreground">
-            {files.length} file{files.length !== 1 ? 's' : ''} selected
-          </p>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-            <AnimatePresence>
-              {files.map((file) => (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-medium">
+              {files.length} file{files.length !== 1 ? 's' : ''} selected
+            </p>
+            {files.filter(f => f.compressedFile).length > 0 && (
+              <p className="text-xs text-success flex items-center gap-1">
+                <Sparkles className="h-3 w-3" />
+                Optimized for upload
+              </p>
+            )}
+          </div>
+          
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+            <AnimatePresence mode="popLayout">
+              {files.map((file, index) => (
                 <motion.div
                   key={file.id}
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.8 }}
+                  transition={{ delay: index * 0.05, duration: 0.22 }}
                   className="relative group"
+                  layout
                 >
-                  <div className="aspect-square rounded-lg overflow-hidden bg-muted border border-border">
+                  <div className="aspect-square rounded-xl overflow-hidden glass-card ring-1 ring-border/50 hover-lift">
                     {file.preview ? (
                       <img
                         src={file.preview}
@@ -136,30 +193,41 @@ export function FileUploadZone({ files, onFilesAdded, onFileRemoved, disabled }:
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center">
+                      <div className="w-full h-full flex items-center justify-center bg-muted">
                         <ImageIcon className="w-8 h-8 text-muted-foreground" />
                       </div>
                     )}
-                    {file.status !== 'pending' && (
-                      <div className="absolute inset-0 bg-background/80 flex items-center justify-center">
-                        <div className="w-12 h-12 rounded-full border-4 border-primary border-t-transparent animate-spin" />
+                    
+                    {file.status === 'compressing' && (
+                      <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex flex-col items-center justify-center gap-2">
+                        <div className="w-8 h-8 rounded-full border-3 border-brand border-t-transparent animate-spin" />
+                        <p className="text-xs font-medium">Optimizing...</p>
                       </div>
                     )}
                   </div>
+                  
                   {file.status === 'pending' && !disabled && (
                     <Button
                       type="button"
                       size="icon"
                       variant="destructive"
-                      className="absolute -top-2 -right-2 h-6 w-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="absolute -top-2 -right-2 h-7 w-7 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-soft"
                       onClick={() => onFileRemoved(file.id)}
                     >
-                      <X className="h-3 w-3" />
+                      <X className="h-4 w-4" />
                     </Button>
                   )}
-                  <p className="text-xs text-muted-foreground mt-1 truncate">
+                  
+                  <p className="text-xs text-muted-foreground mt-2 truncate">
                     {file.file.name}
                   </p>
+                  
+                  {file.compressedFile && (
+                    <p className="text-xs text-success flex items-center gap-1 mt-0.5">
+                      <Sparkles className="h-3 w-3" />
+                      {Math.round((file.compressedFile.size / file.file.size) * 100)}% size
+                    </p>
+                  )}
                 </motion.div>
               ))}
             </AnimatePresence>

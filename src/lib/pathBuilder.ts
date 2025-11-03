@@ -6,12 +6,14 @@ const ID_MONTHS = [
 export function buildUploadPath(meta: {
   noSuratJalan: string;
   tanggal: Date;
+  tipe?: string;
 }) {
   const d = new Date(meta.tanggal);
   const yyyy = d.getFullYear();
   const mmmm = ID_MONTHS[d.getMonth()];
   const dd = d.getDate();
-  return `${yyyy}/${mmmm}/${dd}/pengiriman/${meta.noSuratJalan}`;
+  const tipeLower = (meta.tipe || 'Pengiriman').toLowerCase();
+  return `${yyyy}/${mmmm}/${dd}/${tipeLower}/${meta.noSuratJalan}`;
 }
 
 export function formatDateISO(date: Date): string {
