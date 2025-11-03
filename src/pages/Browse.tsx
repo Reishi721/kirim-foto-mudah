@@ -43,6 +43,30 @@ export default function Browse() {
     loadRecords();
   }, []);
 
+  // Auto-select folder from URL parameter
+  useEffect(() => {
+    const folderParam = searchParams.get('folder');
+    if (folderParam && folderTree.length > 0) {
+      // Find the node in the folder tree
+      const findNode = (nodes: FolderNode[], path: string): FolderNode | null => {
+        for (const node of nodes) {
+          if (node.path === path) return node;
+          if (node.children) {
+            const found = findNode(node.children, path);
+            if (found) return found;
+          }
+        }
+        return null;
+      };
+
+      const node = findNode(folderTree, folderParam);
+      if (node) {
+        setSelectedFolder(node.path);
+        setSelectedNode(node);
+      }
+    }
+  }, [folderTree, searchParams]);
+
   // Load photos when leaf folder selected
   useEffect(() => {
     if (selectedFolder && selectedNode?.type === 'nosj') {

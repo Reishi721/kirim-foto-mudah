@@ -29,6 +29,10 @@ interface RecentUploadsTableProps {
 export function RecentUploadsTable({ uploads }: RecentUploadsTableProps) {
   const navigate = useNavigate();
 
+  const handleOpenFolder = (folderPath: string) => {
+    navigate(`/browse?folder=${encodeURIComponent(folderPath)}`);
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -77,7 +81,7 @@ export function RecentUploadsTable({ uploads }: RecentUploadsTableProps) {
                         <Button 
                           variant="ghost" 
                           size="sm"
-                          onClick={() => navigate('/browse')}
+                          onClick={() => handleOpenFolder(upload.folder_path)}
                         >
                           <ExternalLink className="h-4 w-4" />
                         </Button>
