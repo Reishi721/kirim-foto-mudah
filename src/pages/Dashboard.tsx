@@ -121,70 +121,70 @@ export default function Dashboard() {
       <main className="container mx-auto px-4 py-6 space-y-6">
         {/* Hero Section */}
         <motion.div
-          initial={{ opacity: 0, y: -20 }}
+          initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          className="space-y-2"
+          transition={{ duration: 0.22 }}
+          className="relative overflow-hidden rounded-2xl p-8 glass-card"
         >
-          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-muted-foreground">
-            Welcome back! Here's what's happening with your deliveries.
-          </p>
+          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-brand opacity-60" />
+          <div className="space-y-2">
+            <h1 className="text-display font-bold">Dashboard</h1>
+            <div className="flex items-center gap-4">
+              <p className="text-muted-foreground text-base leading-relaxed">
+                Welcome back! Here's what's happening with your deliveries.
+              </p>
+              <span className="text-xs text-muted-foreground/60">Updated 5m ago</span>
+            </div>
+          </div>
         </motion.div>
 
-        {/* Quick Action Cards */}
+        {/* Hero Action Cards */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="grid grid-cols-1 md:grid-cols-3 gap-4"
+          transition={{ delay: 0.12, duration: 0.22 }}
+          className="grid grid-cols-1 md:grid-cols-2 gap-6"
         >
           <Card 
-            className="p-6 cursor-pointer hover:shadow-lg transition-all hover:border-primary group"
+            className="relative overflow-hidden p-8 cursor-pointer hover-lift group"
             onClick={() => navigate('/upload')}
           >
-            <div className="flex items-center gap-4">
-              <div className="rounded-lg bg-primary/10 p-3 group-hover:bg-primary/20 transition-colors">
-                <Upload className="h-6 w-6 text-primary" />
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-primary" />
+            <div className="flex items-start gap-6">
+              <div className="rounded-xl bg-brand/10 p-4 group-hover:bg-brand/20 transition-colors duration-220">
+                <Upload className="h-8 w-8 text-brand" />
               </div>
-              <div>
-                <h3 className="font-semibold text-foreground">Upload Photos</h3>
-                <p className="text-sm text-muted-foreground">Add new delivery photos</p>
+              <div className="flex-1">
+                <h2 className="font-semibold text-xl mb-1">Upload Photos</h2>
+                <p className="text-sm text-muted-foreground leading-relaxed">Add new delivery photos with metadata</p>
               </div>
             </div>
           </Card>
 
           <Card 
-            className="p-6 cursor-pointer hover:shadow-lg transition-all hover:border-accent group"
+            className="relative overflow-hidden p-8 cursor-pointer hover-lift group"
             onClick={() => navigate('/browse')}
           >
-            <div className="flex items-center gap-4">
-              <div className="rounded-lg bg-accent/10 p-3 group-hover:bg-accent/20 transition-colors">
-                <FolderOpen className="h-6 w-6 text-accent" />
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-success" />
+            <div className="flex items-start gap-6">
+              <div className="rounded-xl bg-success/10 p-4 group-hover:bg-success/20 transition-colors duration-220">
+                <FolderOpen className="h-8 w-8 text-success" />
               </div>
-              <div>
-                <h3 className="font-semibold text-foreground">Browse Photos</h3>
-                <p className="text-sm text-muted-foreground">View all deliveries</p>
-              </div>
-            </div>
-          </Card>
-
-          <Card 
-            className="p-6 cursor-pointer hover:shadow-lg transition-all hover:border-muted-foreground/20 group"
-          >
-            <div className="flex items-center gap-4">
-              <div className="rounded-lg bg-muted p-3 group-hover:bg-muted/80 transition-colors">
-                <Download className="h-6 w-6 text-muted-foreground" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-foreground">Export CSV</h3>
-                <p className="text-sm text-muted-foreground">Download reports</p>
+              <div className="flex-1">
+                <h2 className="font-semibold text-xl mb-1">Browse Photos</h2>
+                <p className="text-sm text-muted-foreground leading-relaxed">View and manage all delivery records</p>
               </div>
             </div>
           </Card>
         </motion.div>
 
         {/* KPI Cards */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.24 }}
+          className="grid gap-6 md:grid-cols-2 lg:grid-cols-4"
+        >
           <KPICard
             title="Total Photos"
             value={stats.totalPhotos}
@@ -217,16 +217,27 @@ export default function Dashboard() {
             deltaLabel="vs last month"
             index={3}
           />
-        </div>
+        </motion.div>
 
         {/* Charts */}
-        <div className="grid gap-4 md:grid-cols-2">
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.36, duration: 0.22 }}
+          className="grid gap-6 md:grid-cols-2"
+        >
           <UploadsChart data={chartData} />
           <TypeChart data={typeData} />
-        </div>
+        </motion.div>
 
         {/* Recent Uploads Table */}
-        <RecentUploadsTable uploads={recentUploads} />
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.48, duration: 0.22 }}
+        >
+          <RecentUploadsTable uploads={recentUploads} />
+        </motion.div>
       </main>
 
       {/* Footer */}
