@@ -33,7 +33,7 @@ export function PhotoList({ photos, onPhotoClick }: PhotoListProps) {
   return (
     <div ref={parentRef} className="h-full overflow-auto">
       {/* Header */}
-      <div className="sticky top-0 z-10 grid grid-cols-12 gap-4 p-4 bg-muted/80 backdrop-blur-sm border-b text-xs font-semibold text-muted-foreground">
+      <div className="sticky top-0 z-10 grid grid-cols-12 gap-4 p-4 bg-muted border-b text-xs font-semibold text-muted-foreground">
         <div className="col-span-1">Preview</div>
         <div className="col-span-4">Filename</div>
         <div className="col-span-2">Type</div>
