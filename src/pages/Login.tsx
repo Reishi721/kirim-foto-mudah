@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import victoryLogo from '@/assets/victory-logo.png';
+import scaffoldingLogo from '@/assets/scaffolding-logo.png';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -49,13 +49,13 @@ export default function Login() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="inline-flex items-center justify-center mx-auto mb-4">
-            <img src={victoryLogo} alt="Victory Logo" className="h-16 w-auto" />
+            <img src={scaffoldingLogo} alt="Scaffolding Logo" className="h-16 w-auto" />
           </div>
           <CardTitle>{isSignUp ? 'Create Account' : 'Login'}</CardTitle>
           <CardDescription>
             {isSignUp
               ? 'Sign up to start uploading delivery documentation'
-              : 'Sign in to your Victory account'}
+              : 'Sign in to your Documenting System account'}
           </CardDescription>
         </CardHeader>
         <CardContent>

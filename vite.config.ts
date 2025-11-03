@@ -17,8 +17,8 @@ export default defineConfig(({ mode }) => ({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico'],
       manifest: {
-        name: 'Surat Jalan Upload',
-        short_name: 'SJ Upload',
+        name: 'Documenting System',
+        short_name: 'Doc System',
         description: 'Upload photos for delivery documentation',
         theme_color: '#2563eb',
         background_color: '#fafafa',
