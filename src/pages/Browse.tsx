@@ -136,6 +136,7 @@ export default function Browse() {
                   noSuratJalan: record.no_surat_jalan,
                   tanggal: record.tanggal,
                   tipe: record.tipe as 'Pengiriman' | 'Pengembalian',
+                  customerName: record.customer_name,
                   supir: record.supir,
                   helper1: record.helper1,
                   helper2: record.helper2,

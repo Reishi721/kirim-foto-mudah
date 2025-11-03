@@ -13,6 +13,7 @@ export interface PhotoMetadata {
   noSuratJalan: string;
   tanggal: string;
   tipe: 'Pengiriman' | 'Pengembalian';
+  customerName?: string;
   supir: string;
   helper1?: string;
   helper2?: string;
@@ -35,6 +36,7 @@ export interface UploadRecord {
   no_surat_jalan: string;
   tanggal: string;
   tipe: string;
+  customer_name?: string;
   supir: string;
   helper1?: string;
   helper2?: string;

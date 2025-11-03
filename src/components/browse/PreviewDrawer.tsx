@@ -129,6 +129,12 @@ export function PreviewDrawer({
                     {metadata.tipe}
                   </Badge>
                 </div>
+                {metadata.customerName && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Customer:</span>
+                    <span className="font-medium text-foreground">{metadata.customerName}</span>
+                  </div>
+                )}
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Supir:</span>
                   <span className="font-medium text-foreground">{metadata.supir}</span>
