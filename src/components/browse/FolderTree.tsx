@@ -1,9 +1,11 @@
-import { useState } from 'react';
-import { ChevronRight, ChevronDown, Folder, File } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { ChevronRight, ChevronDown, Folder, File, Search, X } from 'lucide-react';
 import { FolderNode } from '@/lib/browseTypes';
 import { sortFolderNodes } from '@/lib/folderHierarchy';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 
 interface FolderTreeProps {
   nodes: FolderNode[];
@@ -95,9 +97,34 @@ function TreeNode({ node, level, onNodeClick, selectedPath }: TreeNodeProps) {
 }
 
 export function FolderTree({ nodes, onNodeClick, selectedPath }: FolderTreeProps) {
-  const sortedNodes = sortFolderNodes(nodes);
+  const [searchQuery, setSearchQuery] = useState('');
 
-  if (sortedNodes.length === 0) {
+  const filterNodes = (nodes: FolderNode[], query: string): FolderNode[] => {
+    if (!query) return nodes;
+    
+    return nodes.reduce<FolderNode[]>((acc, node) => {
+      const matchesQuery = node.name.toLowerCase().includes(query.toLowerCase()) ||
+                          node.path.toLowerCase().includes(query.toLowerCase());
+      
+      const filteredChildren = node.children ? filterNodes(node.children, query) : [];
+      
+      if (matchesQuery || filteredChildren.length > 0) {
+        acc.push({
+          ...node,
+          children: filteredChildren.length > 0 ? filteredChildren : node.children,
+        });
+      }
+      
+      return acc;
+    }, []);
+  };
+
+  const filteredNodes = useMemo(
+    () => filterNodes(sortFolderNodes(nodes), searchQuery),
+    [nodes, searchQuery]
+  );
+
+  if (nodes.length === 0) {
     return (
       <div className="p-4 text-sm text-muted-foreground text-center">
         No folders found
@@ -106,16 +133,48 @@ export function FolderTree({ nodes, onNodeClick, selectedPath }: FolderTreeProps
   }
 
   return (
-    <div className="py-2">
-      {sortedNodes.map((node) => (
-        <TreeNode
-          key={node.path}
-          node={node}
-          level={0}
-          onNodeClick={onNodeClick}
-          selectedPath={selectedPath}
-        />
-      ))}
+    <div className="flex flex-col h-full">
+      {/* Search Input */}
+      <div className="p-3 border-b">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search folders..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9 pr-9 h-10"
+          />
+          {searchQuery && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="absolute right-1 top-1/2 transform -translate-y-1/2 h-7 w-7 p-0"
+              onClick={() => setSearchQuery('')}
+            >
+              <X className="h-3 w-3" />
+            </Button>
+          )}
+        </div>
+      </div>
+
+      {/* Folder Tree */}
+      <div className="flex-1 overflow-y-auto py-2">
+        {filteredNodes.length === 0 ? (
+          <div className="p-4 text-sm text-muted-foreground text-center">
+            No matching folders found
+          </div>
+        ) : (
+          filteredNodes.map((node) => (
+            <TreeNode
+              key={node.path}
+              node={node}
+              level={0}
+              onNodeClick={onNodeClick}
+              selectedPath={selectedPath}
+            />
+          ))
+        )}
+      </div>
     </div>
   );
 }

@@ -20,6 +20,7 @@ import { toast } from 'sonner';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useUploadRecords } from '@/hooks/useUploadRecords';
 import { offlineStorage } from '@/lib/offlineStorage';
+import { BrowseSkeleton } from '@/components/ui/skeleton-loader';
 
 export default function Browse() {
   const [searchParams, setSearchParams] = useSearchParams();

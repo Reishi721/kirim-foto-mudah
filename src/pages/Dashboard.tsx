@@ -14,6 +14,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useUploadRecords } from '@/hooks/useUploadRecords';
+import { DashboardSkeleton } from '@/components/ui/skeleton-loader';
 
 interface Stats {
   totalRecords: number;
@@ -136,11 +137,7 @@ export default function Dashboard() {
   const recentUploads = useMemo(() => records.slice(0, 10), [records]);
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-      </div>
-    );
+    return <DashboardSkeleton />;
   }
 
   return (

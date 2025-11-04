@@ -13,6 +13,7 @@ import { format } from 'date-fns';
 import { motion } from 'framer-motion';
 import { useMapClustering } from '@/hooks/useMapClustering';
 import { HeatmapLayer } from '@/components/map/HeatmapLayer';
+import { MapSkeleton } from '@/components/ui/skeleton-loader';
 
 interface PhotoLocation {
   id: string;
@@ -206,11 +207,7 @@ export default function MapPage() {
   };
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-      </div>
-    );
+    return <MapSkeleton />;
   }
 
   return (
