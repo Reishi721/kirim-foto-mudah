@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
-import { CalendarIcon, Upload as UploadIcon, CheckCircle2 } from 'lucide-react';
+import { CalendarIcon, Upload as UploadIcon, CheckCircle2, ChevronDown, ChevronUp, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
@@ -11,9 +11,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { FileUploadZone } from '@/components/upload/FileUploadZone';
 import { UploadProgress } from '@/components/upload/UploadProgress';
 import { DuplicateWarning } from '@/components/upload/DuplicateWarning';
+import { FormFieldWrapper } from '@/components/ui/form-field-wrapper';
 import { UploadFormSchema, UploadFormData, FileWithProgress, DRIVERS } from '@/lib/uploadSchema';
 import { buildUploadPath, formatDateISO } from '@/lib/pathBuilder';
 import { extractGPSFromImage, getDeviceLocation } from '@/lib/gpsExtractor';
@@ -32,6 +34,7 @@ export default function Upload() {
   const [uploadedPath, setUploadedPath] = useState<string>('');
   const [duplicates, setDuplicates] = useState<Map<string, DuplicateInfo>>(new Map());
   const [heicConversions, setHeicConversions] = useState<Set<string>>(new Set());
+  const [showHelpers, setShowHelpers] = useState(false);
 
   const form = useForm<UploadFormData>({
     resolver: zodResolver(UploadFormSchema),
@@ -333,21 +336,27 @@ export default function Upload() {
                   <h2 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6">Delivery Information</h2>
                   
                   <div className="space-y-6">
-                    {/* Document Number */}
+                    {/* Document Number with validation indicator */}
                     <FormField
                       control={form.control}
                       name="noSuratJalan"
-                      render={({ field }) => (
+                      render={({ field, fieldState }) => (
                         <FormItem>
-                           <FormLabel className="text-base sm:text-sm">Document Number *</FormLabel>
-                          <FormControl>
-                            <Input 
-                              placeholder="e.g. SJ-2025-001" 
-                              className="h-12 sm:h-11 text-base"
-                              {...field} 
-                              disabled={isUploading} 
-                            />
-                          </FormControl>
+                          <FormLabel className="text-base sm:text-sm">Document Number *</FormLabel>
+                          <FormFieldWrapper
+                            isValid={!!(field.value && !fieldState.error)}
+                            isInvalid={!!(fieldState.error && fieldState.isTouched)}
+                            showValidation={!!(fieldState.isTouched || field.value)}
+                          >
+                            <FormControl>
+                              <Input 
+                                placeholder="e.g. SJ-2025-001" 
+                                className="h-12 sm:h-11 text-base pr-10"
+                                {...field} 
+                                disabled={isUploading} 
+                              />
+                            </FormControl>
+                          </FormFieldWrapper>
                           <FormDescription className="text-xs">
                             Enter the delivery note number
                           </FormDescription>
@@ -418,21 +427,27 @@ export default function Upload() {
                       )}
                     />
 
-                    {/* Customer Name */}
+                    {/* Customer Name with validation */}
                     <FormField
                       control={form.control}
                       name="customerName"
-                      render={({ field }) => (
+                      render={({ field, fieldState }) => (
                         <FormItem>
                           <FormLabel className="text-base sm:text-sm">Customer Name *</FormLabel>
-                          <FormControl>
-                            <Input 
-                              placeholder="e.g. PT. ABC Company" 
-                              className="h-12 sm:h-11 text-base"
-                              {...field} 
-                              disabled={isUploading} 
-                            />
-                          </FormControl>
+                          <FormFieldWrapper
+                            isValid={!!(field.value && !fieldState.error)}
+                            isInvalid={!!(fieldState.error && fieldState.isTouched)}
+                            showValidation={!!(fieldState.isTouched || field.value)}
+                          >
+                            <FormControl>
+                              <Input 
+                                placeholder="e.g. PT. ABC Company" 
+                                className="h-12 sm:h-11 text-base pr-10"
+                                {...field} 
+                                disabled={isUploading} 
+                              />
+                            </FormControl>
+                          </FormFieldWrapper>
                           <FormDescription className="text-xs">
                             Enter the customer or company name
                           </FormDescription>
@@ -467,46 +482,60 @@ export default function Upload() {
                       )}
                     />
 
-                    {/* Helpers */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                      <FormField
-                        control={form.control}
-                        name="helper1"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-base sm:text-sm">Helper 1</FormLabel>
-                            <FormControl>
-                              <Input 
-                                placeholder="Optional" 
-                                className="h-12 sm:h-11 text-base"
-                                {...field} 
-                                disabled={isUploading} 
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                    {/* Helpers - Collapsible */}
+                    <Collapsible open={showHelpers} onOpenChange={setShowHelpers} className="border rounded-lg p-4 bg-muted/30">
+                      <CollapsibleTrigger asChild>
+                        <Button variant="ghost" className="w-full justify-between h-auto p-0 hover:bg-transparent">
+                          <div className="flex items-center gap-2">
+                            <Users className="h-4 w-4 text-muted-foreground" />
+                            <span className="text-sm font-medium">Additional Helpers</span>
+                            <span className="text-xs text-muted-foreground">(Optional)</span>
+                          </div>
+                          {showHelpers ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                        </Button>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="space-y-4 pt-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <FormField
+                            control={form.control}
+                            name="helper1"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-sm">Helper 1</FormLabel>
+                                <FormControl>
+                                  <Input 
+                                    placeholder="Name" 
+                                    className="h-10 text-sm"
+                                    {...field} 
+                                    disabled={isUploading} 
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
 
-                      <FormField
-                        control={form.control}
-                        name="helper2"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-base sm:text-sm">Helper 2</FormLabel>
-                            <FormControl>
-                              <Input 
-                                placeholder="Optional" 
-                                className="h-12 sm:h-11 text-base"
-                                {...field} 
-                                disabled={isUploading} 
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
+                          <FormField
+                            control={form.control}
+                            name="helper2"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-sm">Helper 2</FormLabel>
+                                <FormControl>
+                                  <Input 
+                                    placeholder="Name" 
+                                    className="h-10 text-sm"
+                                    {...field} 
+                                    disabled={isUploading} 
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      </CollapsibleContent>
+                    </Collapsible>
 
                     {/* Description */}
                     <FormField

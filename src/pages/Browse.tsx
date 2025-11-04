@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { Grid3x3, List, Loader2, PanelLeftClose, PanelLeft, ChevronLeft, FolderTree as FolderTreeIcon, ImageOff } from 'lucide-react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
+import { Grid3x3, List, Loader2, PanelLeftClose, PanelLeft, ChevronLeft, FolderTree as FolderTreeIcon, ImageOff, FolderOpen, Upload as UploadIconLucide } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
@@ -11,7 +11,7 @@ import { FiltersToolbar } from '@/components/browse/FiltersToolbar';
 import { PhotoGrid } from '@/components/browse/PhotoGrid';
 import { PhotoList } from '@/components/browse/PhotoList';
 import { PreviewDrawer } from '@/components/browse/PreviewDrawer';
-import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from '@/components/ui/breadcrumb';
+import { BreadcrumbNav } from '@/components/browse/BreadcrumbNav';
 import { Skeleton } from '@/components/ui/skeleton';
 import { supabase } from '@/integrations/supabase/client';
 import { buildFolderTree } from '@/lib/folderHierarchy';
@@ -24,6 +24,7 @@ import { BrowseSkeleton } from '@/components/ui/skeleton-loader';
 
 export default function Browse() {
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
   const { data: records = [], isLoading } = useUploadRecords();
   const [folderTree, setFolderTree] = useState<FolderNode[]>([]);
   const [photos, setPhotos] = useState<PhotoFile[]>([]);
@@ -369,43 +370,20 @@ export default function Browse() {
       <div className="flex-1 flex flex-col">
         {/* Breadcrumb Navigation */}
         {breadcrumbPaths.length > 0 && (
-          <div className="px-3 sm:px-4 py-2 border-b bg-muted/30 overflow-x-auto">
-            <Breadcrumb>
-              <BreadcrumbList className="flex-nowrap">
-                <BreadcrumbItem className="shrink-0">
-                  <BreadcrumbLink
-                    onClick={() => {
-                      setSelectedFolder(null);
-                      setSelectedNode(null);
-                    }}
-                    className="cursor-pointer"
-                  >
-                    Home
-                  </BreadcrumbLink>
-                </BreadcrumbItem>
-                {breadcrumbPaths.map((item, index) => (
-                  <React.Fragment key={item.path}>
-                    <BreadcrumbSeparator className="shrink-0" />
-                    <BreadcrumbItem className="shrink-0">
-                      {index === breadcrumbPaths.length - 1 ? (
-                        <BreadcrumbPage className="truncate max-w-[120px] sm:max-w-none">{item.name}</BreadcrumbPage>
-                      ) : (
-                        <BreadcrumbLink
-                          onClick={() => {
-                            const node = findNodeInTree(folderTree, item.path);
-                            setSelectedFolder(item.path);
-                            setSelectedNode(node || null);
-                          }}
-                          className="cursor-pointer truncate max-w-[120px] sm:max-w-none"
-                        >
-                          {item.name}
-                        </BreadcrumbLink>
-                      )}
-                    </BreadcrumbItem>
-                  </React.Fragment>
-                ))}
-              </BreadcrumbList>
-            </Breadcrumb>
+          <div className="px-3 sm:px-4 py-2 border-b bg-muted/30">
+            <BreadcrumbNav
+              paths={breadcrumbPaths}
+              onNavigate={(path) => {
+                if (path === null) {
+                  setSelectedFolder(null);
+                  setSelectedNode(null);
+                } else {
+                  const node = findNodeInTree(folderTree, path);
+                  setSelectedFolder(path);
+                  setSelectedNode(node || null);
+                }
+              }}
+            />
           </div>
         )}
 
@@ -485,13 +463,34 @@ export default function Browse() {
         {/* Results Area */}
         <div className="flex-1 overflow-hidden relative">
           {!selectedFolder ? (
-            <FolderGrid 
-              folders={folderTree} 
-              onFolderClick={(folder) => {
-                setSelectedFolder(folder.path);
-                setSelectedNode(folder);
-              }} 
-            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="flex flex-col items-center justify-center h-full text-center p-8"
+            >
+              <div className="rounded-full bg-gradient-primary/10 p-8 mb-6">
+                <FolderOpen className="h-20 w-20 text-primary" />
+              </div>
+              <h3 className="text-2xl font-bold text-foreground mb-3">
+                Welcome to Browse
+              </h3>
+              <p className="text-sm text-muted-foreground mb-6 max-w-md leading-relaxed">
+                Select a folder from the sidebar to view delivery records and photos. 
+                Use filters to quickly find what you're looking for.
+              </p>
+              <div className="flex gap-3">
+                <Button onClick={() => navigate('/upload')} className="hover-lift">
+                  <UploadIconLucide className="mr-2 h-4 w-4" />
+                  Upload New Photos
+                </Button>
+                {!isSidebarOpen && !isMobile && (
+                  <Button onClick={() => setIsSidebarOpen(true)} variant="outline" className="hover-lift">
+                    <PanelLeft className="mr-2 h-4 w-4" />
+                    Show Folders
+                  </Button>
+                )}
+              </div>
+            </motion.div>
           ) : selectedNode?.type !== 'nosj' && selectedNode?.children ? (
             <FolderGrid 
               folders={selectedNode.children} 
