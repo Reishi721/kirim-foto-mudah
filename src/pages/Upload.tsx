@@ -339,11 +339,11 @@ export default function Upload() {
                       name="noSuratJalan"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-base">Document Number *</FormLabel>
+                           <FormLabel className="text-base sm:text-sm">Document Number *</FormLabel>
                           <FormControl>
                             <Input 
                               placeholder="e.g. SJ-2025-001" 
-                              className="h-11"
+                              className="h-12 sm:h-11 text-base"
                               {...field} 
                               disabled={isUploading} 
                             />
@@ -362,20 +362,20 @@ export default function Upload() {
                       name="tanggal"
                       render={({ field }) => (
                         <FormItem className="flex flex-col">
-                          <FormLabel className="text-base">Tanggal *</FormLabel>
+                          <FormLabel className="text-base sm:text-sm">Tanggal *</FormLabel>
                           <Popover>
                             <PopoverTrigger asChild>
                               <FormControl>
                                 <Button
                                   variant="outline"
                                   className={cn(
-                                    'h-11 w-full pl-3 text-left font-normal',
+                                    'h-12 sm:h-11 w-full pl-3 text-left font-normal text-base sm:text-sm',
                                     !field.value && 'text-muted-foreground'
                                   )}
                                   disabled={isUploading}
                                 >
                                   {field.value ? format(field.value, 'PPP') : <span>Pick a date</span>}
-                                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                  <CalendarIcon className="ml-auto h-5 w-5 sm:h-4 sm:w-4 opacity-50" />
                                 </Button>
                               </FormControl>
                             </PopoverTrigger>
@@ -401,10 +401,10 @@ export default function Upload() {
                       name="tipe"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-base">Document Type *</FormLabel>
+                          <FormLabel className="text-base sm:text-sm">Document Type *</FormLabel>
                           <Select onValueChange={field.onChange} value={field.value} disabled={isUploading}>
                             <FormControl>
-                              <SelectTrigger className="h-11">
+                              <SelectTrigger className="h-12 sm:h-11 text-base sm:text-sm">
                                 <SelectValue placeholder="Select type" />
                               </SelectTrigger>
                             </FormControl>
@@ -424,11 +424,11 @@ export default function Upload() {
                       name="customerName"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-base">Customer Name *</FormLabel>
+                          <FormLabel className="text-base sm:text-sm">Customer Name *</FormLabel>
                           <FormControl>
                             <Input 
                               placeholder="e.g. PT. ABC Company" 
-                              className="h-11"
+                              className="h-12 sm:h-11 text-base"
                               {...field} 
                               disabled={isUploading} 
                             />
@@ -447,10 +447,10 @@ export default function Upload() {
                       name="supir"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-base">Supir *</FormLabel>
+                          <FormLabel className="text-base sm:text-sm">Supir *</FormLabel>
                           <Select onValueChange={field.onChange} value={field.value} disabled={isUploading}>
                             <FormControl>
-                              <SelectTrigger className="h-11">
+                              <SelectTrigger className="h-12 sm:h-11 text-base sm:text-sm">
                                 <SelectValue placeholder="Select driver" />
                               </SelectTrigger>
                             </FormControl>
@@ -474,11 +474,11 @@ export default function Upload() {
                         name="helper1"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-base">Helper 1</FormLabel>
+                            <FormLabel className="text-base sm:text-sm">Helper 1</FormLabel>
                             <FormControl>
                               <Input 
                                 placeholder="Optional" 
-                                className="h-11"
+                                className="h-12 sm:h-11 text-base"
                                 {...field} 
                                 disabled={isUploading} 
                               />
@@ -493,11 +493,11 @@ export default function Upload() {
                         name="helper2"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-base">Helper 2</FormLabel>
+                            <FormLabel className="text-base sm:text-sm">Helper 2</FormLabel>
                             <FormControl>
                               <Input 
                                 placeholder="Optional" 
-                                className="h-11"
+                                className="h-12 sm:h-11 text-base"
                                 {...field} 
                                 disabled={isUploading} 
                               />
@@ -514,11 +514,11 @@ export default function Upload() {
                       name="description"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-base">Description</FormLabel>
+                          <FormLabel className="text-base sm:text-sm">Description</FormLabel>
                           <FormControl>
                             <Textarea 
                               placeholder="Add notes or description about this delivery (optional)" 
-                              className="resize-none min-h-[100px]" 
+                              className="resize-none min-h-[120px] text-base" 
                               {...field} 
                               disabled={isUploading} 
                             />
@@ -540,8 +540,8 @@ export default function Upload() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.24, duration: 0.22 }}
               >
-                <Card className="p-6 md:p-8">
-                  <h2 className="font-semibold mb-6">Upload Pictures *</h2>
+                <Card className="p-4 sm:p-6 md:p-8">
+                  <h2 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6">Upload Pictures *</h2>
                   
                   {/* Duplicate Warnings */}
                   {Array.from(duplicates.entries()).map(([fileId, duplicateInfo]) => {
@@ -601,18 +601,18 @@ export default function Upload() {
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
             className="fixed bottom-0 left-0 right-0 z-50 glass-card border-t border-border/50 shadow-float"
           >
-            <div className="container mx-auto px-4 py-4">
-              <div className="max-w-3xl mx-auto flex items-center gap-4">
+            <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
+              <div className="max-w-3xl mx-auto flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
                 <div className="flex-1">
                   <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-brand/10">
-                      <UploadIcon className="h-5 w-5 text-brand" />
+                    <div className="flex h-11 w-11 sm:h-10 sm:w-10 items-center justify-center rounded-lg bg-brand/10">
+                      <UploadIcon className="h-6 w-6 sm:h-5 sm:w-5 text-brand" />
                     </div>
                     <div>
-                      <p className="font-medium text-sm">
+                      <p className="font-medium text-base sm:text-sm">
                         {isUploading ? `Uploading... ${Math.round(overallProgress)}%` : `${files.length} file${files.length !== 1 ? 's' : ''} ready`}
                       </p>
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-sm sm:text-xs text-muted-foreground">
                         {isUploading ? `${completedFiles} of ${totalFiles} completed` : 'Click Upload to continue'}
                       </p>
                     </div>
@@ -623,7 +623,7 @@ export default function Upload() {
                   onClick={form.handleSubmit(onSubmit)}
                   disabled={!isFormValid}
                   size="lg"
-                  className="shadow-soft"
+                  className="shadow-soft min-h-[52px] sm:min-h-[44px] w-full sm:w-auto text-base"
                 >
                   {isUploading ? 'Uploading...' : 'Upload Files'}
                 </Button>

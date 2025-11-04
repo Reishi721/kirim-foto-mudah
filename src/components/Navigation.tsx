@@ -26,9 +26,9 @@ export function Navigation() {
   ];
 
   return (
-    <nav className="border-b bg-card sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
+    <nav className="border-b bg-card sticky top-0 z-50 shadow-sm">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4">
+        <div className="flex items-center justify-between h-14 sm:h-16">
           {/* Logo */}
           <button 
             onClick={() => navigate('/')} 
@@ -63,17 +63,18 @@ export function Navigation() {
           {/* Mobile Navigation */}
           <Sheet open={isOpen} onOpenChange={setIsOpen}>
             <SheetTrigger asChild className="md:hidden">
-              <Button variant="ghost" size="icon">
-                <Menu className="h-5 w-5" />
+              <Button variant="ghost" size="icon" className="h-11 w-11">
+                <Menu className="h-6 w-6" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-64">
-              <div className="flex flex-col gap-4 mt-8">
+            <SheetContent side="right" className="w-72 sm:w-80">
+              <div className="flex flex-col gap-3 mt-8">
                 {navItems.map((item) => (
                   <Link key={item.path} to={item.path} onClick={() => setIsOpen(false)}>
                     <Button
                       variant={location.pathname === item.path ? 'default' : 'ghost'}
-                      className="w-full justify-start gap-3"
+                      size="lg"
+                      className="w-full justify-start gap-3 min-h-[52px] text-base"
                     >
                       <item.icon className="w-5 h-5" />
                       {item.label}
@@ -81,9 +82,10 @@ export function Navigation() {
                   </Link>
                 ))}
                 <Button 
-                  variant="ghost" 
+                  variant="ghost"
+                  size="lg" 
                   onClick={handleLogout} 
-                  className="w-full justify-start gap-3 text-destructive hover:text-destructive"
+                  className="w-full justify-start gap-3 text-destructive hover:text-destructive min-h-[52px] text-base"
                 >
                   <LogOut className="w-5 h-5" />
                   Logout

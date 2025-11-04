@@ -1,10 +1,11 @@
 import { useCallback, useState } from 'react';
-import { Upload, X, ImageIcon, Sparkles } from 'lucide-react';
+import { Upload, X, ImageIcon, Sparkles, Camera } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { FileWithProgress } from '@/lib/uploadSchema';
 import { compressImage, createImagePreview } from '@/lib/imageCompression';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Progress } from '@/components/ui/progress';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface FileUploadZoneProps {
   files: FileWithProgress[];
@@ -15,6 +16,7 @@ interface FileUploadZoneProps {
 
 export function FileUploadZone({ files, onFilesAdded, onFileRemoved, disabled }: FileUploadZoneProps) {
   const [isDragging, setIsDragging] = useState(false);
+  const isMobile = useIsMobile();
 
   const handleFiles = useCallback(async (fileList: FileList) => {
     const newFiles: FileWithProgress[] = [];
@@ -119,27 +121,54 @@ export function FileUploadZone({ files, onFilesAdded, onFileRemoved, disabled }:
             </p>
           </div>
           
-          <Button
-            type="button"
-            variant="outline"
-            size="lg"
-            disabled={disabled}
-            onClick={() => document.getElementById('file-input')?.click()}
-            className="mt-2"
-          >
-            <Upload className="mr-2 h-4 w-4" />
-            Select Files
-          </Button>
+          <div className="flex flex-col sm:flex-row gap-3 mt-2 w-full sm:w-auto">
+            {isMobile && (
+              <Button
+                type="button"
+                variant="default"
+                size="lg"
+                disabled={disabled}
+                onClick={() => document.getElementById('camera-input')?.click()}
+                className="flex-1 sm:flex-initial min-h-[48px]"
+              >
+                <Camera className="mr-2 h-5 w-5" />
+                Take Photo
+              </Button>
+            )}
+            <Button
+              type="button"
+              variant="outline"
+              size="lg"
+              disabled={disabled}
+              onClick={() => document.getElementById('file-input')?.click()}
+              className="flex-1 sm:flex-initial min-h-[48px]"
+            >
+              <Upload className="mr-2 h-5 w-5" />
+              {isMobile ? 'Choose Files' : 'Select Files'}
+            </Button>
+          </div>
           
           <input
             id="file-input"
             type="file"
             multiple
-            accept="image/jpeg,image/jpg,image/png,image/webp"
+            accept="image/jpeg,image/jpg,image/png,image/webp,image/heic,image/heif"
             className="hidden"
             onChange={handleFileInput}
             disabled={disabled}
           />
+          
+          {isMobile && (
+            <input
+              id="camera-input"
+              type="file"
+              accept="image/*"
+              capture="environment"
+              className="hidden"
+              onChange={handleFileInput}
+              disabled={disabled}
+            />
+          )}
         </div>
       </div>
 
@@ -211,7 +240,7 @@ export function FileUploadZone({ files, onFilesAdded, onFileRemoved, disabled }:
                       type="button"
                       size="icon"
                       variant="destructive"
-                      className="absolute -top-2 -right-2 h-7 w-7 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-soft"
+                      className="absolute -top-2 -right-2 h-8 w-8 sm:h-7 sm:w-7 rounded-full opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity shadow-soft"
                       onClick={() => onFileRemoved(file.id)}
                     >
                       <X className="h-4 w-4" />
