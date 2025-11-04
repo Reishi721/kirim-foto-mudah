@@ -11,7 +11,6 @@ import { FiltersToolbar } from '@/components/browse/FiltersToolbar';
 import { PhotoGrid } from '@/components/browse/PhotoGrid';
 import { PhotoList } from '@/components/browse/PhotoList';
 import { PreviewDrawer } from '@/components/browse/PreviewDrawer';
-
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from '@/components/ui/breadcrumb';
 import { Skeleton } from '@/components/ui/skeleton';
 import { supabase } from '@/integrations/supabase/client';
@@ -19,10 +18,12 @@ import { buildFolderTree } from '@/lib/folderHierarchy';
 import { PhotoFile, UploadRecord, FolderNode, ViewMode, FilterState } from '@/lib/browseTypes';
 import { toast } from 'sonner';
 import { AnimatePresence, motion } from 'framer-motion';
+import { useUploadRecords } from '@/hooks/useUploadRecords';
+import { offlineStorage } from '@/lib/offlineStorage';
 
 export default function Browse() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [records, setRecords] = useState<UploadRecord[]>([]);
+  const { data: records = [], isLoading } = useUploadRecords();
   const [folderTree, setFolderTree] = useState<FolderNode[]>([]);
   const [photos, setPhotos] = useState<PhotoFile[]>([]);
   const [filteredPhotos, setFilteredPhotos] = useState<PhotoFile[]>([]);
@@ -31,7 +32,6 @@ export default function Browse() {
   const [selectedPhoto, setSelectedPhoto] = useState<PhotoFile | null>(null);
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0);
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
-  const [isLoading, setIsLoading] = useState(true);
   const [isLoadingPhotos, setIsLoadingPhotos] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobileSheetOpen, setIsMobileSheetOpen] = useState(false);
@@ -46,10 +46,12 @@ export default function Browse() {
     supir: searchParams.get('supir') || undefined,
   }), [searchParams]);
 
-  // Load upload records
+  // Build folder tree when records change
   useEffect(() => {
-    loadRecords();
-  }, []);
+    if (records.length > 0) {
+      setFolderTree(buildFolderTree(records));
+    }
+  }, [records]);
 
   // Auto-select folder from URL parameter
   useEffect(() => {
@@ -78,29 +80,10 @@ export default function Browse() {
     applyFilters();
   }, [photos, filters]);
 
-  const loadRecords = async () => {
-    setIsLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from('upload_records')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-
-      setRecords(data || []);
-      setFolderTree(buildFolderTree(data || []));
-    } catch (error) {
-      console.error('Error loading records:', error);
-      toast.error('Failed to load records');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const loadPhotosFromFolder = async (folderPath: string) => {
     setIsLoadingPhotos(true);
     try {
+      // Try to fetch from network first
       const { data: files, error } = await supabase.storage
         .from('surat-jalan-uploads')
         .list(folderPath);
@@ -115,7 +98,6 @@ export default function Browse() {
             .from('surat-jalan-uploads')
             .getPublicUrl(filePath);
 
-          // Find matching record for metadata
           const record = records.find((r) => r.folder_path === folderPath);
 
           return {
@@ -126,6 +108,7 @@ export default function Browse() {
             type: file.metadata?.mimetype || 'unknown',
             uploadedAt: file.created_at || file.updated_at || new Date().toISOString(),
             url: urlData.publicUrl,
+            folderPath: folderPath,
             metadata: record
               ? {
                   noSuratJalan: record.no_surat_jalan,
@@ -143,9 +126,18 @@ export default function Browse() {
       );
 
       setPhotos(photoFiles);
+      // Cache photos for offline access (cast for storage)
+      await offlineStorage.savePhotos(folderPath, photoFiles as any);
     } catch (error) {
       console.error('Error loading photos:', error);
-      toast.error('Failed to load photos');
+      // Try offline cache
+      const cachedPhotos = await offlineStorage.getPhotos(folderPath);
+      if (cachedPhotos.length > 0) {
+        setPhotos(cachedPhotos as any);
+        toast.info('Showing cached photos - offline mode');
+      } else {
+        toast.error('Failed to load photos');
+      }
     } finally {
       setIsLoadingPhotos(false);
     }

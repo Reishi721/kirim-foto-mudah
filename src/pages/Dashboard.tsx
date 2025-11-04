@@ -10,9 +10,10 @@ import { TimelineDrilldown } from '@/components/dashboard/TimelineDrilldown';
 import { Camera, FolderOpen, HardDrive, TrendingUp, Loader2, Upload, Download, Shield } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { useUploadRecords } from '@/hooks/useUploadRecords';
 
 interface Stats {
   totalRecords: number;
@@ -37,24 +38,10 @@ interface TypeData {
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const [stats, setStats] = useState<Stats>({
-    totalRecords: 0,
-    totalPhotos: 0,
-    driversCount: 0,
-    thisMonthRecords: 0,
-    photosChange: 0,
-    deliveriesChange: 0,
-    driversChange: 0,
-    monthRecordsChange: 0,
-  });
-  const [chartData, setChartData] = useState<ChartData[]>([]);
-  const [typeData, setTypeData] = useState<TypeData[]>([]);
-  const [recentUploads, setRecentUploads] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const { data: records = [], isLoading } = useUploadRecords();
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    loadDashboardData();
     checkAdminStatus();
   }, []);
 
@@ -69,102 +56,84 @@ export default function Dashboard() {
     }
   };
 
-  const loadDashboardData = async () => {
-    setIsLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from('upload_records')
-        .select('*')
-        .order('created_at', { ascending: false });
+  // Calculate stats from records using useMemo for performance
+  const stats = useMemo(() => {
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+    const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+    const lastMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear;
+    
+    const thisMonthRecords = records.filter(r => {
+      const recordDate = new Date(r.created_at);
+      return recordDate.getMonth() === currentMonth && 
+             recordDate.getFullYear() === currentYear;
+    });
+    
+    const lastMonthRecords = records.filter(r => {
+      const recordDate = new Date(r.created_at);
+      return recordDate.getMonth() === lastMonth && 
+             recordDate.getFullYear() === lastMonthYear;
+    });
+    
+    const totalPhotos = records.reduce((sum, r) => sum + (r.file_count || 0), 0);
+    const lastMonthPhotos = lastMonthRecords.reduce((sum, r) => sum + (r.file_count || 0), 0);
+    const thisMonthPhotos = thisMonthRecords.reduce((sum, r) => sum + (r.file_count || 0), 0);
+    
+    const driversSet = new Set(records.map(r => r.supir));
+    const lastMonthDrivers = new Set(lastMonthRecords.map(r => r.supir));
+    
+    const photosChange = lastMonthPhotos > 0 
+      ? Math.round(((thisMonthPhotos - lastMonthPhotos) / lastMonthPhotos) * 100) 
+      : 0;
+    
+    const deliveriesChange = lastMonthRecords.length > 0
+      ? Math.round(((thisMonthRecords.length - lastMonthRecords.length) / lastMonthRecords.length) * 100)
+      : 0;
+    
+    const driversChange = lastMonthDrivers.size > 0
+      ? Math.round(((driversSet.size - lastMonthDrivers.size) / lastMonthDrivers.size) * 100)
+      : 0;
 
-      if (error) throw error;
+    return {
+      totalRecords: records.length,
+      totalPhotos,
+      driversCount: driversSet.size,
+      thisMonthRecords: thisMonthRecords.length,
+      photosChange,
+      deliveriesChange,
+      driversChange,
+      monthRecordsChange: deliveriesChange,
+    };
+  }, [records]);
 
-      const records = data || [];
-      
-      const now = new Date();
-      const currentMonth = now.getMonth();
-      const currentYear = now.getFullYear();
-      
-      // Calculate previous month
-      const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1;
-      const lastMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear;
-      
-      // Current month data
-      const thisMonthRecords = records.filter(r => {
-        const recordDate = new Date(r.created_at);
-        return recordDate.getMonth() === currentMonth && 
-               recordDate.getFullYear() === currentYear;
-      });
-      
-      // Last month data
-      const lastMonthRecords = records.filter(r => {
-        const recordDate = new Date(r.created_at);
-        return recordDate.getMonth() === lastMonth && 
-               recordDate.getFullYear() === lastMonthYear;
-      });
-      
-      // Calculate current stats
-      const totalFiles = records.reduce((sum, r) => sum + (r.file_count || 0), 0);
-      const uniqueDrivers = new Set(records.map(r => r.supir)).size;
-      
-      // Calculate last month stats
-      const lastMonthPhotos = lastMonthRecords.reduce((sum, r) => sum + (r.file_count || 0), 0);
-      const lastMonthDeliveries = lastMonthRecords.length;
-      const lastMonthDrivers = new Set(lastMonthRecords.map(r => r.supir)).size;
-      
-      // Calculate current month stats
-      const thisMonthPhotos = thisMonthRecords.reduce((sum, r) => sum + (r.file_count || 0), 0);
-      const thisMonthDeliveries = thisMonthRecords.length;
-      const thisMonthDriversCount = new Set(thisMonthRecords.map(r => r.supir)).size;
-      
-      // Calculate percentage changes
-      const calcChange = (current: number, previous: number) => {
-        if (previous === 0) return current > 0 ? 100 : 0;
-        return Math.round(((current - previous) / previous) * 100);
-      };
-      
-      setStats({
-        totalRecords: records.length,
-        totalPhotos: totalFiles,
-        driversCount: uniqueDrivers,
-        thisMonthRecords: thisMonthDeliveries,
-        photosChange: calcChange(thisMonthPhotos, lastMonthPhotos),
-        deliveriesChange: calcChange(thisMonthDeliveries, lastMonthDeliveries),
-        driversChange: calcChange(thisMonthDriversCount, lastMonthDrivers),
-        monthRecordsChange: calcChange(thisMonthDeliveries, lastMonthDeliveries),
-      });
+  // Calculate chart data
+  const chartData = useMemo(() => {
+    const last30Days = Array.from({ length: 30 }, (_, i) => {
+      const date = new Date();
+      date.setDate(date.getDate() - (29 - i));
+      return date.toISOString().split('T')[0];
+    });
 
-      // Prepare chart data (last 7 days)
-      const last7Days = Array.from({ length: 7 }, (_, i) => {
-        const date = new Date();
-        date.setDate(date.getDate() - (6 - i));
-        return date.toISOString().split('T')[0];
-      });
+    return last30Days.map(date => ({
+      date,
+      uploads: records.filter(r => r.created_at.split('T')[0] === date).length,
+    }));
+  }, [records]);
 
-      const uploadsPerDay = last7Days.map(date => ({
-        date: new Date(date).toLocaleDateString('id-ID', { month: 'short', day: 'numeric' }),
-        uploads: records.filter(r => r.created_at.startsWith(date)).length,
-      }));
+  // Calculate type data
+  const typeData = useMemo(() => {
+    const pengiriman = records.filter(r => r.tipe === 'Pengiriman').length;
+    const pengembalian = records.filter(r => r.tipe === 'Pengembalian').length;
+    
+    return [
+      { name: 'Pengiriman', value: pengiriman },
+      { name: 'Pengembalian', value: pengembalian },
+    ];
+  }, [records]);
 
-      setChartData(uploadsPerDay);
-
-      // Type distribution
-      const pengiriman = records.filter(r => r.tipe === 'Pengiriman').length;
-      const pengembalian = records.filter(r => r.tipe === 'Pengembalian').length;
-
-      setTypeData([
-        { name: 'Pengiriman', value: pengiriman },
-        { name: 'Pengembalian', value: pengembalian },
-      ]);
-
-      // Recent uploads
-      setRecentUploads(records.slice(0, 5));
-    } catch (error) {
-      console.error('Error loading dashboard data:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  // Recent uploads
+  const recentUploads = useMemo(() => records.slice(0, 10), [records]);
 
   if (isLoading) {
     return (
