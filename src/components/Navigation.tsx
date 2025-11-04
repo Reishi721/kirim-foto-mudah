@@ -9,6 +9,7 @@ import scaffoldingLogo from '@/assets/scaffolding-logo.png';
 import { UserProfileDropdown } from './navigation/UserProfileDropdown';
 import { GlobalSearch } from './navigation/GlobalSearch';
 import { NotificationCenter } from './navigation/NotificationCenter';
+import { GPSIndicator } from './navigation/GPSIndicator';
 import { Separator } from './ui/separator';
 
 export function Navigation() {
@@ -84,6 +85,7 @@ export function Navigation() {
             
             <Separator orientation="vertical" className="h-6 mx-2" />
             
+            <GPSIndicator />
             <GlobalSearch />
             <NotificationCenter />
             <UserProfileDropdown />

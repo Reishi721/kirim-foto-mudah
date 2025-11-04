@@ -17,6 +17,7 @@ const Admin = lazy(() => import("./pages/Admin"));
 const Map = lazy(() => import("./pages/Map"));
 const Profile = lazy(() => import("./pages/Profile"));
 const Settings = lazy(() => import("./pages/Settings"));
+const Install = lazy(() => import("./pages/Install"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient({
@@ -127,6 +128,14 @@ const App = () => (
               element={
                 <ProtectedRoute showNav={true}>
                   <Settings />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/install"
+              element={
+                <ProtectedRoute showNav={true}>
+                  <Install />
                 </ProtectedRoute>
               }
             />
