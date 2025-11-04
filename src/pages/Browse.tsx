@@ -11,7 +11,7 @@ import { FiltersToolbar } from '@/components/browse/FiltersToolbar';
 import { PhotoGrid } from '@/components/browse/PhotoGrid';
 import { PhotoList } from '@/components/browse/PhotoList';
 import { PreviewDrawer } from '@/components/browse/PreviewDrawer';
-import { QuickFilters } from '@/components/browse/QuickFilters';
+
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator, BreadcrumbPage } from '@/components/ui/breadcrumb';
 import { Skeleton } from '@/components/ui/skeleton';
 import { supabase } from '@/integrations/supabase/client';
@@ -330,17 +330,6 @@ export default function Browse() {
           selectedPath={selectedFolder || undefined}
         />
       </div>
-      <QuickFilters
-        drivers={uniqueDrivers}
-        dates={uniqueDates}
-        types={['Pengiriman', 'Pengembalian']}
-        selectedDriver={filters.supir}
-        selectedDate={filters.dateFrom}
-        selectedType={filters.type !== 'all' ? filters.type : undefined}
-        onDriverSelect={(driver) => handleFiltersChange({ supir: driver })}
-        onDateSelect={(date) => handleFiltersChange({ dateFrom: date, dateTo: date })}
-        onTypeSelect={(type) => handleFiltersChange({ type: type as FilterState['type'] || 'all' })}
-      />
     </>
   );
 
@@ -428,59 +417,70 @@ export default function Browse() {
         )}
 
         {/* Toolbar */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-3 sm:px-4 py-3 border-b bg-card">
-          <div className="flex items-center gap-2 overflow-x-auto">
-            {isMobile ? (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="glass-card border-b"
+        >
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-4 py-4">
+            <div className="flex items-center gap-3 overflow-x-auto">
+              {isMobile ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsMobileSheetOpen(true)}
+                  className="flex items-center gap-2 shrink-0 hover-lift"
+                >
+                  <FolderTreeIcon className="h-4 w-4" />
+                  <span>Folders</span>
+                </Button>
+              ) : !isSidebarOpen && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsSidebarOpen(true)}
+                  className="flex items-center gap-2 shrink-0 hover-lift"
+                >
+                  <PanelLeft className="h-4 w-4" />
+                  <span className="hidden sm:inline">Folders</span>
+                </Button>
+              )}
+              {selectedFolder && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleGoBack}
+                  className="flex items-center gap-2 shrink-0 hover-lift"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  <span className="hidden sm:inline">Back</span>
+                </Button>
+              )}
+              <div className="flex items-center gap-2">
+                <div className="h-8 w-1 bg-gradient-primary rounded-full" />
+                <h1 className="text-lg sm:text-xl font-bold text-foreground whitespace-nowrap">Browse Photos</h1>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
               <Button
-                variant="outline"
+                variant={viewMode === 'grid' ? 'default' : 'outline'}
                 size="sm"
-                onClick={() => setIsMobileSheetOpen(true)}
-                className="flex items-center gap-2 shrink-0"
+                onClick={() => setViewMode('grid')}
+                className="hover-lift"
               >
-                <FolderTreeIcon className="h-4 w-4" />
-                <span>Folders</span>
+                <Grid3x3 className="w-4 h-4" />
               </Button>
-            ) : !isSidebarOpen && (
               <Button
-                variant="outline"
+                variant={viewMode === 'list' ? 'default' : 'outline'}
                 size="sm"
-                onClick={() => setIsSidebarOpen(true)}
-                className="flex items-center gap-2 shrink-0"
+                onClick={() => setViewMode('list')}
+                className="hover-lift"
               >
-                <PanelLeft className="h-4 w-4" />
-                <span className="hidden sm:inline">Folders</span>
+                <List className="w-4 h-4" />
               </Button>
-            )}
-            {selectedFolder && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleGoBack}
-                className="flex items-center gap-2 shrink-0"
-              >
-                <ChevronLeft className="h-4 w-4" />
-                <span className="hidden sm:inline">Back</span>
-              </Button>
-            )}
-            <h1 className="text-lg sm:text-xl font-semibold text-foreground whitespace-nowrap">Browse Photos</h1>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant={viewMode === 'grid' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setViewMode('grid')}
-            >
-              <Grid3x3 className="w-4 h-4" />
-            </Button>
-            <Button
-              variant={viewMode === 'list' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setViewMode('list')}
-            >
-              <List className="w-4 h-4" />
-            </Button>
-          </div>
-        </div>
+        </motion.div>
 
         <FiltersToolbar
           filters={filters}

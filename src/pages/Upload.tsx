@@ -300,17 +300,19 @@ export default function Upload() {
         initial={{ opacity: 0, y: -16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.22 }}
-        className="relative overflow-hidden glass-card mb-4 sm:mb-8"
+        className="relative overflow-hidden glass-card mb-6 sm:mb-10"
       >
-        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-brand opacity-60" />
-        <div className="container mx-auto px-4 py-4 sm:py-8">
-          <div className="flex items-center gap-3 sm:gap-4">
-            <div className="flex h-10 w-10 sm:h-14 sm:w-14 items-center justify-center rounded-lg sm:rounded-xl bg-gradient-primary shadow-soft">
-              <UploadIcon className="h-5 w-5 sm:h-7 sm:w-7 text-primary-foreground" />
+        <div className="absolute top-0 left-0 w-full h-2 bg-gradient-brand" />
+        <div className="container mx-auto px-4 py-6 sm:py-10">
+          <div className="flex items-center gap-4 sm:gap-6">
+            <div className="flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-xl sm:rounded-2xl bg-gradient-primary shadow-elegant hover-lift">
+              <UploadIcon className="h-7 w-7 sm:h-8 sm:w-8 text-primary-foreground" />
             </div>
             <div>
-              <h1 className="text-2xl sm:text-display font-bold">Upload Photos</h1>
-              <p className="text-sm sm:text-base text-muted-foreground mt-1">Fast delivery documentation</p>
+              <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+                Upload Photos
+              </h1>
+              <p className="text-sm sm:text-base text-muted-foreground mt-2">Fast delivery documentation</p>
             </div>
           </div>
         </div>

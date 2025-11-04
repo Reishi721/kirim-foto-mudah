@@ -184,16 +184,21 @@ export default function Dashboard() {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.22 }}
-          className="relative overflow-hidden rounded-xl sm:rounded-2xl p-4 sm:p-8 glass-card"
+          className="relative overflow-hidden rounded-2xl p-6 sm:p-10 glass-card"
         >
-          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-brand opacity-60" />
-          <div className="space-y-2">
-            <h1 className="text-2xl sm:text-display font-bold">Dashboard</h1>
-            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+          <div className="absolute top-0 left-0 w-full h-2 bg-gradient-brand" />
+          <div className="space-y-3">
+            <div className="flex items-center gap-3">
+              <div className="h-12 w-1.5 bg-gradient-primary rounded-full" />
+              <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+                Dashboard
+              </h1>
+            </div>
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 pl-6">
               <p className="text-muted-foreground text-sm sm:text-base leading-relaxed">
                 Welcome back! Here's what's happening with your deliveries.
               </p>
-              <span className="text-xs text-muted-foreground/60">Updated 5m ago</span>
+              <span className="text-xs text-muted-foreground/60 sm:ml-auto">Updated 5m ago</span>
             </div>
           </div>
         </motion.div>

@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { Loader2, Download, MapPin, Navigation, Flame } from 'lucide-react';
+import { Loader2, Download, MapPin, Navigation, Flame, Upload as UploadIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { motion } from 'framer-motion';
@@ -218,21 +218,28 @@ export default function MapPage() {
       <motion.div
         initial={{ opacity: 0, y: -16 }}
         animate={{ opacity: 1, y: 0 }}
-        className="glass-card mb-6"
+        className="relative overflow-hidden glass-card mb-8"
       >
-        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-primary opacity-60" />
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex items-center gap-3 mb-4">
-            <MapPin className="h-6 w-6 text-primary" />
-            <h1 className="text-display font-bold">Route Visualization</h1>
+        <div className="absolute top-0 left-0 w-full h-2 bg-gradient-primary" />
+        <div className="container mx-auto px-4 py-8">
+          <div className="flex items-center gap-4 mb-6">
+            <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-primary shadow-elegant hover-lift">
+              <MapPin className="h-7 w-7 text-primary-foreground" />
+            </div>
+            <div>
+              <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+                Route Visualization
+              </h1>
+              <p className="text-sm text-muted-foreground mt-1">Track and analyze delivery routes</p>
+            </div>
           </div>
           
-          <div className="flex flex-wrap gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             <Select value={selectedDriver} onValueChange={setSelectedDriver}>
-              <SelectTrigger className="w-48">
+              <SelectTrigger className="w-full hover-lift">
                 <SelectValue placeholder="Select driver" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="glass-card">
                 <SelectItem value="all">All Drivers</SelectItem>
                 {drivers.map(driver => (
                   <SelectItem key={driver} value={driver}>{driver}</SelectItem>
@@ -241,10 +248,10 @@ export default function MapPage() {
             </Select>
 
             <Select value={selectedDate} onValueChange={setSelectedDate}>
-              <SelectTrigger className="w-48">
+              <SelectTrigger className="w-full hover-lift">
                 <SelectValue placeholder="Select date" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="glass-card">
                 <SelectItem value="all">All Dates</SelectItem>
                 {dates.map(date => (
                   <SelectItem key={date} value={date}>{format(new Date(date), 'PPP')}</SelectItem>
@@ -252,9 +259,9 @@ export default function MapPage() {
               </SelectContent>
             </Select>
 
-            <div className="flex items-center gap-2 px-4 py-2 border rounded-md bg-card">
-              <Flame className="h-4 w-4 text-orange-500" />
-              <Label htmlFor="heatmap-toggle" className="cursor-pointer">Heatmap</Label>
+            <div className="flex items-center gap-3 px-4 py-2 border rounded-lg bg-card hover-lift">
+              <Flame className="h-5 w-5 text-orange-500" />
+              <Label htmlFor="heatmap-toggle" className="cursor-pointer font-medium">Heatmap</Label>
               <Switch
                 id="heatmap-toggle"
                 checked={showHeatmap}
@@ -262,20 +269,21 @@ export default function MapPage() {
               />
             </div>
 
-            <Button onClick={exportToGeoJSON} variant="outline" className="hover-lift">
-              <Download className="mr-2 h-4 w-4" />
-              Export GeoJSON
-            </Button>
-
-            <Button onClick={exportToKML} variant="outline" className="hover-lift">
-              <Download className="mr-2 h-4 w-4" />
-              Export KML
-            </Button>
+            <div className="flex gap-2">
+              <Button onClick={exportToGeoJSON} variant="outline" className="flex-1 hover-lift" size="sm">
+                <Download className="mr-2 h-4 w-4" />
+                GeoJSON
+              </Button>
+              <Button onClick={exportToKML} variant="outline" className="flex-1 hover-lift" size="sm">
+                <Download className="mr-2 h-4 w-4" />
+                KML
+              </Button>
+            </div>
           </div>
 
-          <div className="flex gap-4 mt-4">
-            <Badge variant="secondary">
-              <Navigation className="mr-1 h-3 w-3" />
+          <div className="flex gap-3">
+            <Badge variant="secondary" className="px-3 py-1.5">
+              <Navigation className="mr-2 h-4 w-4" />
               {filteredLocations.length} locations
             </Badge>
           </div>
@@ -283,18 +291,25 @@ export default function MapPage() {
       </motion.div>
 
       <div className="container mx-auto px-4 pb-8">
-        <Card className="p-0 overflow-hidden" style={{ height: '70vh' }}>
+        <Card className="p-0 overflow-hidden shadow-elegant" style={{ height: '70vh' }}>
           {locations.length === 0 ? (
-            <div className="h-full flex flex-col items-center justify-center text-center px-4">
-              <MapPin className="h-20 w-20 mb-4 text-muted-foreground/30" />
-              <h3 className="text-lg font-semibold mb-2">No GPS Data Available</h3>
-              <p className="text-muted-foreground mb-4 max-w-md">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="h-full flex flex-col items-center justify-center text-center px-6"
+            >
+              <div className="rounded-full bg-muted/50 p-8 mb-6">
+                <MapPin className="h-20 w-20 text-muted-foreground/40" />
+              </div>
+              <h3 className="text-2xl font-bold mb-3">No GPS Data Available</h3>
+              <p className="text-muted-foreground mb-6 max-w-md leading-relaxed">
                 Upload photos with GPS coordinates to visualize routes and locations on this map
               </p>
-              <Button onClick={() => window.location.href = '/upload'} variant="outline">
+              <Button onClick={() => window.location.href = '/upload'} className="hover-lift">
+                <UploadIcon className="mr-2 h-4 w-4" />
                 Upload Photos with GPS
               </Button>
-            </div>
+            </motion.div>
           ) : (
             <div className="relative h-full w-full">
               {showHeatmap && <HeatmapLayer locations={filteredLocations} zoom={zoom} />}
