@@ -15,6 +15,8 @@ const Browse = lazy(() => import("./pages/Browse"));
 const Login = lazy(() => import("./pages/Login"));
 const Admin = lazy(() => import("./pages/Admin"));
 const Map = lazy(() => import("./pages/Map"));
+const Profile = lazy(() => import("./pages/Profile"));
+const Settings = lazy(() => import("./pages/Settings"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient({
@@ -109,6 +111,22 @@ const App = () => (
               element={
                 <ProtectedRoute showNav={true}>
                   <Map />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute showNav={true}>
+                  <Profile />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/settings"
+              element={
+                <ProtectedRoute showNav={true}>
+                  <Settings />
                 </ProtectedRoute>
               }
             />

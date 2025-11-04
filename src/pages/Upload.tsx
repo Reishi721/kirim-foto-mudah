@@ -26,6 +26,7 @@ import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import confetti from 'canvas-confetti';
+import { notificationService } from '@/lib/notificationService';
 
 export default function Upload() {
   const navigate = useNavigate();
@@ -268,6 +269,13 @@ export default function Upload() {
             },
             icon: <CheckCircle2 className="h-5 w-5" />,
           });
+
+          // Add notification
+          notificationService.add({
+            type: 'success',
+            title: 'Upload Successful',
+            message: `${successCount} of ${files.length} files uploaded to ${data.noSuratJalan}`,
+          });
           
           // Reset form after a short delay
           setTimeout(() => {
@@ -280,11 +288,27 @@ export default function Upload() {
         toast.error('Upload failed', {
           description: 'All files failed to upload. Please try again.'
         });
+
+        // Add error notification
+        notificationService.add({
+          type: 'error',
+          title: 'Upload Failed',
+          message: 'All files failed to upload. Please check your connection and try again.',
+        });
       }
     } catch (error) {
       console.error('Upload error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      
       toast.error('Upload failed', {
-        description: error instanceof Error ? error.message : 'Unknown error occurred'
+        description: errorMessage
+      });
+
+      // Add error notification
+      notificationService.add({
+        type: 'error',
+        title: 'Upload Error',
+        message: errorMessage,
       });
     } finally {
       setIsUploading(false);
