@@ -19,6 +19,10 @@ interface Stats {
   totalPhotos: number;
   driversCount: number;
   thisMonthRecords: number;
+  photosChange: number;
+  deliveriesChange: number;
+  driversChange: number;
+  monthRecordsChange: number;
 }
 
 interface ChartData {
@@ -38,6 +42,10 @@ export default function Dashboard() {
     totalPhotos: 0,
     driversCount: 0,
     thisMonthRecords: 0,
+    photosChange: 0,
+    deliveriesChange: 0,
+    driversChange: 0,
+    monthRecordsChange: 0,
   });
   const [chartData, setChartData] = useState<ChartData[]>([]);
   const [typeData, setTypeData] = useState<TypeData[]>([]);
@@ -73,22 +81,57 @@ export default function Dashboard() {
 
       const records = data || [];
       
-      // Calculate stats
+      const now = new Date();
+      const currentMonth = now.getMonth();
+      const currentYear = now.getFullYear();
+      
+      // Calculate previous month
+      const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+      const lastMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear;
+      
+      // Current month data
+      const thisMonthRecords = records.filter(r => {
+        const recordDate = new Date(r.created_at);
+        return recordDate.getMonth() === currentMonth && 
+               recordDate.getFullYear() === currentYear;
+      });
+      
+      // Last month data
+      const lastMonthRecords = records.filter(r => {
+        const recordDate = new Date(r.created_at);
+        return recordDate.getMonth() === lastMonth && 
+               recordDate.getFullYear() === lastMonthYear;
+      });
+      
+      // Calculate current stats
       const totalFiles = records.reduce((sum, r) => sum + (r.file_count || 0), 0);
       const uniqueDrivers = new Set(records.map(r => r.supir)).size;
       
-      const now = new Date();
-      const thisMonth = records.filter(r => {
-        const recordDate = new Date(r.created_at);
-        return recordDate.getMonth() === now.getMonth() && 
-               recordDate.getFullYear() === now.getFullYear();
-      }).length;
-
+      // Calculate last month stats
+      const lastMonthPhotos = lastMonthRecords.reduce((sum, r) => sum + (r.file_count || 0), 0);
+      const lastMonthDeliveries = lastMonthRecords.length;
+      const lastMonthDrivers = new Set(lastMonthRecords.map(r => r.supir)).size;
+      
+      // Calculate current month stats
+      const thisMonthPhotos = thisMonthRecords.reduce((sum, r) => sum + (r.file_count || 0), 0);
+      const thisMonthDeliveries = thisMonthRecords.length;
+      const thisMonthDriversCount = new Set(thisMonthRecords.map(r => r.supir)).size;
+      
+      // Calculate percentage changes
+      const calcChange = (current: number, previous: number) => {
+        if (previous === 0) return current > 0 ? 100 : 0;
+        return Math.round(((current - previous) / previous) * 100);
+      };
+      
       setStats({
         totalRecords: records.length,
         totalPhotos: totalFiles,
         driversCount: uniqueDrivers,
-        thisMonthRecords: thisMonth,
+        thisMonthRecords: thisMonthDeliveries,
+        photosChange: calcChange(thisMonthPhotos, lastMonthPhotos),
+        deliveriesChange: calcChange(thisMonthDeliveries, lastMonthDeliveries),
+        driversChange: calcChange(thisMonthDriversCount, lastMonthDrivers),
+        monthRecordsChange: calcChange(thisMonthDeliveries, lastMonthDeliveries),
       });
 
       // Prepare chart data (last 7 days)
@@ -231,7 +274,7 @@ export default function Dashboard() {
             title="Total Photos"
             value={stats.totalPhotos}
             icon={Camera}
-            delta={12}
+            delta={stats.photosChange}
             deltaLabel="vs last month"
             index={0}
           />
@@ -239,7 +282,7 @@ export default function Dashboard() {
             title="Total Deliveries"
             value={stats.totalRecords}
             icon={FolderOpen}
-            delta={8}
+            delta={stats.deliveriesChange}
             deltaLabel="vs last month"
             index={1}
           />
@@ -247,7 +290,7 @@ export default function Dashboard() {
             title="Active Drivers"
             value={stats.driversCount}
             icon={TrendingUp}
-            delta={5}
+            delta={stats.driversChange}
             deltaLabel="vs last month"
             index={2}
           />
@@ -255,7 +298,7 @@ export default function Dashboard() {
             title="This Month"
             value={stats.thisMonthRecords}
             icon={HardDrive}
-            delta={-3}
+            delta={stats.monthRecordsChange}
             deltaLabel="vs last month"
             index={3}
           />
