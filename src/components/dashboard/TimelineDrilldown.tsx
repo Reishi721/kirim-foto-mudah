@@ -75,16 +75,18 @@ export function TimelineDrilldown({ uploads }: TimelineDrilldownProps) {
   const timelineGroups = groupByDate();
 
   return (
-    <Card className="relative overflow-hidden p-6">
-      <div className="absolute top-0 left-0 w-20 h-1 bg-gradient-from-l-brand to-success" />
+    <Card className="relative overflow-hidden p-4 md:p-6">
+      <div className="absolute top-0 left-0 w-20 h-1 bg-gradient-to-r from-brand to-success" />
       
-      <div className="flex items-start justify-between mb-6">
-        <div>
-          <h2 className="font-semibold mb-2">Interactive Timeline</h2>
-          <p className="text-sm text-muted-foreground">Drill down into delivery history</p>
+      <div className="flex flex-col gap-3 mb-4 md:mb-6">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div>
+            <h2 className="font-semibold mb-1 md:mb-2 text-sm md:text-base">Interactive Timeline</h2>
+            <p className="text-xs md:text-sm text-muted-foreground">Drill down into delivery history</p>
+          </div>
         </div>
         
-        <div className="flex gap-2">
+        <div className="flex gap-1.5 md:gap-2">
           {(['day', 'week', 'month'] as const).map(period => (
             <Button
               key={period}
@@ -94,7 +96,7 @@ export function TimelineDrilldown({ uploads }: TimelineDrilldownProps) {
                 setSelectedPeriod(period);
                 setExpandedDate(null);
               }}
-              className="capitalize"
+              className="capitalize text-xs md:text-sm flex-1 sm:flex-none"
             >
               {period}
             </Button>
@@ -102,7 +104,7 @@ export function TimelineDrilldown({ uploads }: TimelineDrilldownProps) {
         </div>
       </div>
 
-      <div className="space-y-3 max-h-[600px] overflow-y-auto pr-2">
+      <div className="space-y-2 md:space-y-3 max-h-[400px] md:max-h-[600px] overflow-y-auto pr-1 md:pr-2">
         {timelineGroups.map((group, index) => (
           <motion.div
             key={group.date}
@@ -113,23 +115,23 @@ export function TimelineDrilldown({ uploads }: TimelineDrilldownProps) {
           >
             <button
               onClick={() => setExpandedDate(expandedDate === group.date ? null : group.date)}
-              className="w-full p-4 flex items-center justify-between hover:bg-muted/50 transition-colors text-left"
+              className="w-full p-3 md:p-4 flex items-center justify-between hover:bg-muted/50 transition-colors text-left"
             >
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-brand/10">
-                  <Calendar className="h-4 w-4 text-brand" />
+              <div className="flex items-center gap-2 md:gap-3 min-w-0">
+                <div className="p-1.5 md:p-2 rounded-lg bg-brand/10 flex-shrink-0">
+                  <Calendar className="h-3 w-3 md:h-4 md:w-4 text-brand" />
                 </div>
-                <div>
-                  <p className="font-medium">{formatDateLabel(group.date)}</p>
-                  <p className="text-xs text-muted-foreground">
+                <div className="min-w-0">
+                  <p className="font-medium text-xs md:text-sm truncate">{formatDateLabel(group.date)}</p>
+                  <p className="text-[10px] md:text-xs text-muted-foreground">
                     {group.count} {group.count === 1 ? 'delivery' : 'deliveries'}
                   </p>
                 </div>
               </div>
               
-              <div className="flex items-center gap-3">
-                <Badge variant="secondary">{group.count}</Badge>
-                <ChevronRight className={`h-4 w-4 transition-transform ${
+              <div className="flex items-center gap-2 md:gap-3 flex-shrink-0">
+                <Badge variant="secondary" className="text-xs">{group.count}</Badge>
+                <ChevronRight className={`h-3 w-3 md:h-4 md:w-4 transition-transform ${
                   expandedDate === group.date ? 'rotate-90' : ''
                 }`} />
               </div>
@@ -144,38 +146,38 @@ export function TimelineDrilldown({ uploads }: TimelineDrilldownProps) {
                   transition={{ duration: 0.2 }}
                   className="border-t border-border bg-muted/20"
                 >
-                  <div className="p-4 space-y-3">
+                  <div className="p-3 md:p-4 space-y-2 md:space-y-3">
                     {group.uploads.map((upload, idx) => (
                       <div
                         key={upload.id}
-                        className="p-3 rounded-lg bg-card border border-border/50 hover:border-brand/50 transition-colors"
+                        className="p-2.5 md:p-3 rounded-lg bg-card border border-border/50 hover:border-brand/50 transition-colors"
                       >
-                        <div className="flex items-start justify-between mb-2">
-                          <div className="flex items-center gap-2">
-                            <FileText className="h-4 w-4 text-brand" />
-                            <p className="font-medium text-sm">{upload.no_surat_jalan}</p>
-                            <Badge variant={upload.tipe === 'Pengiriman' ? 'default' : 'secondary'} className="text-xs">
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-2">
+                          <div className="flex items-center gap-1.5 md:gap-2 min-w-0">
+                            <FileText className="h-3 w-3 md:h-4 md:w-4 text-brand flex-shrink-0" />
+                            <p className="font-medium text-xs md:text-sm truncate">{upload.no_surat_jalan}</p>
+                            <Badge variant={upload.tipe === 'Pengiriman' ? 'default' : 'secondary'} className="text-[10px] md:text-xs flex-shrink-0">
                               {upload.tipe}
                             </Badge>
                           </div>
-                          <p className="text-xs text-muted-foreground">
+                          <p className="text-[10px] md:text-xs text-muted-foreground">
                             {format(new Date(upload.created_at), 'HH:mm')}
                           </p>
                         </div>
                         
-                        <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 md:gap-2 text-[10px] md:text-xs text-muted-foreground">
                           <div className="flex items-center gap-1">
-                            <User className="h-3 w-3" />
-                            <span>{upload.supir}</span>
+                            <User className="h-3 w-3 flex-shrink-0" />
+                            <span className="truncate">{upload.supir}</span>
                           </div>
                           <div className="flex items-center gap-1">
-                            <MapPin className="h-3 w-3" />
+                            <MapPin className="h-3 w-3 flex-shrink-0" />
                             <span>{upload.file_count || 0} photos</span>
                           </div>
                         </div>
 
                         {upload.description && (
-                          <p className="text-xs text-muted-foreground mt-2 truncate">
+                          <p className="text-[10px] md:text-xs text-muted-foreground mt-2 truncate">
                             {upload.description}
                           </p>
                         )}

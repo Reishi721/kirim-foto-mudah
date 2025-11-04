@@ -9,18 +9,24 @@ const COLORS = ['hsl(var(--brand))', 'hsl(var(--accent))'];
 
 export function TypeChart({ data }: TypeChartProps) {
   return (
-    <Card className="relative overflow-hidden p-6">
+    <Card className="relative overflow-hidden p-4 md:p-6">
       <div className="absolute top-0 left-0 w-20 h-1 bg-gradient-success" />
-      <h2 className="font-semibold mb-6">By Type</h2>
-      <ResponsiveContainer width="100%" height={300}>
+      <h2 className="font-semibold mb-4 md:mb-6 text-sm md:text-base">By Type</h2>
+      <ResponsiveContainer width="100%" height={250} className="md:h-[300px]">
         <PieChart>
           <Pie
             data={data}
             cx="50%"
             cy="50%"
             labelLine={false}
-            label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-            outerRadius={90}
+            label={({ name, percent }) => {
+              // Hide labels on very small screens
+              if (window.innerWidth < 640) {
+                return '';
+              }
+              return `${name}: ${(percent * 100).toFixed(0)}%`;
+            }}
+            outerRadius={window.innerWidth < 640 ? 70 : 90}
             fill="#8884d8"
             dataKey="value"
             animationDuration={800}
@@ -39,7 +45,7 @@ export function TypeChart({ data }: TypeChartProps) {
           />
           <Legend 
             wrapperStyle={{ 
-              fontSize: '14px',
+              fontSize: window.innerWidth < 640 ? '12px' : '14px',
               paddingTop: '20px'
             }}
           />
